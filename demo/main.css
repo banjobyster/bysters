@@ -44,13 +44,34 @@ code { font-family: var(--mono); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .accent { color: var(--cobalt); }
 
-/* persistent single CTA */
-.gh {
-  position: fixed; top: 18px; right: 22px; z-index: 60;
-  display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14.5px;
-  padding: 9px 15px; border-radius: 11px; background: var(--ink); color: var(--cream);
+/* persistent toolbar: a debug toggle + the GitHub link, icon-only */
+.toolbar { position: fixed; top: 18px; right: 22px; z-index: 60; display: flex; gap: 8px; }
+.tbtn {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 11px; background: var(--ink); color: var(--cream); border: none; cursor: pointer;
+  font-size: 18px; line-height: 1; padding: 0; transition: background .15s, transform .1s;
 }
-.gh:hover { background: #120c07; } .gh .star { color: var(--amber); }
+.tbtn:hover { background: #120c07; }
+.tbtn:active { transform: translateY(1px); }
+.tbtn[aria-pressed='true'] { background: var(--cobalt); }
+
+/* the debug window: a live look behind the screen, toggled by the bug button */
+.dbg {
+  position: fixed; left: 16px; bottom: 16px; z-index: 70; width: min(340px, 92vw);
+  background: rgba(20, 14, 9, 0.93); color: #f0e6d6; border: 1px solid #4a3a2c; border-radius: 12px;
+  padding: 12px 14px; font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
+}
+.dbg[hidden] { display: none; }
+.dbg-head { font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 11px; color: #e0a83c; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+.dbg-dot { width: 8px; height: 8px; border-radius: 50%; background: #3ddc97; box-shadow: 0 0 8px #3ddc97; }
+.dbg-row { padding: 5px 0; border-top: 1px solid #33261b; }
+.dbg-row:first-child { border-top: none; }
+.dbg-row b { color: #ffd9a0; }
+.dbg-dim { color: #9c8a76; }
+.dbg-legend { margin-top: 8px; padding-top: 8px; border-top: 1px solid #33261b; color: #9c8a76; font-size: 10.5px; line-height: 1.45; }
+.dbg-legend .ok { color: #3ddc97; }
+.dbg-legend .no { color: #ff5d5d; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 9px; font-family: var(--body); font-weight: 700; font-size: 16px;

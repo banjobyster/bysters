@@ -151,8 +151,26 @@ function drawCables({ app, cast, store }) {
 // byster actually stands: surfaces are green if reachable by its owner, red if
 // stranded, plus the jump arcs. The fastest way to see WHY a ledge is or is not
 // reachable, per scene, with no dependence on a floor-class convention.
-const DEBUG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
+let debugOn = typeof location !== 'undefined' && new URLSearchParams(location.search).has('debug');
 let gDebug = null;
+let dbgTick = 0;
+
+// The debug window: a live table of every bot and which behaviour is currently
+// driving each of its channels (read straight off the arbiter), plus its body
+// state. Toggled by the bug button; pairs with the nav-graph overlay.
+function updateDebugPanel(cast) {
+  const body = document.querySelector('#dbg-panel .dbg-body');
+  if (!body) return;
+  body.innerHTML = cast
+    .map((m) => {
+      const own = (m.byster && m.byster.arbiter && m.byster.arbiter.owner) || {};
+      const mv = m.mover;
+      const tags = [...(m.byster ? m.byster.tags : [])].join(', ') || 'none';
+      return `<div class="dbg-row"><b>${m.name}</b> ${mv.state} · surf ${mv.surface} · pace ${mv.pace.toFixed(2)} · α ${Math.round(mv.alpha * 100)}%<br><span class="dbg-dim">tags: ${tags} · loco:${own.locomotion || '-'} face:${own.face || '-'} gaze:${own.gaze || '-'}</span></div>`;
+    })
+    .join('');
+}
+
 function drawDebug({ app, graph, cast }) {
   if (!graph) return;
   if (!gDebug) {
@@ -205,6 +223,24 @@ function wirePrompts(handle) {
   handle.on('rebuild', attach);
 }
 
+// The bug button toggles the debug window (and the nav-graph overlay) at runtime,
+// so there is no need to reload the page with ?debug.
+function wireDebug() {
+  const btn = document.getElementById('debug-toggle');
+  const panel = document.getElementById('dbg-panel');
+  if (!btn || !panel) return;
+  const apply = () => {
+    btn.setAttribute('aria-pressed', String(debugOn));
+    panel.hidden = !debugOn;
+    if (!debugOn && gDebug) gDebug.clear();
+  };
+  btn.addEventListener('click', () => {
+    debugOn = !debugOn;
+    apply();
+  });
+  apply();
+}
+
 async function main() {
   const handle = await mount({
     bysters: CAST,
@@ -214,9 +250,14 @@ async function main() {
     shadow: false, // a ground shadow reads wrong on walls/undersides here; drop it
     onFrame: (f) => {
       drawCables(f);
-      if (DEBUG) drawDebug(f);
+      if (debugOn) {
+        drawDebug(f);
+        if (dbgTick++ % 6 === 0) updateDebugPanel(f.cast); // ~10fps panel refresh
+      } else if (gDebug) {
+        gDebug.clear();
+      }
     },
-    debug: DEBUG,
+    debug: debugOn,
   });
   if (handle.degraded) return;
 
@@ -234,6 +275,7 @@ async function main() {
   }
 
   wirePrompts(handle);
+  wireDebug();
   window.__playground = handle;
 }
 

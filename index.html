@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bysters — tiny creatures that live on your web page</title>
+    <meta name="description" content="bysters is an open-source JavaScript library that drops tiny procedural creatures onto any web page. They treat your layout as terrain, sense the cursor, and break and fix things. One import, zero config." />
+    <link rel="canonical" href="https://banjobyster.github.io/bysters/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="bysters — tiny creatures that live on your web page" />
+    <meta property="og:description" content="Little procedural creatures that treat your page as terrain, notice the cursor, and get into things. Scroll down and watch the page play itself." />
+    <meta property="og:url" content="https://banjobyster.github.io/bysters/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="bysters — tiny creatures that live on your web page" />
+    <meta name="twitter:description" content="Open-source creatures that make any web page feel alive. One import, zero config." />
+    <script type="module" crossorigin src="./assets/index-B4es5gkv.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Cn0lVIVg.css">
+  </head>
+  <body>
+    <a class="gh" href="https://github.com/banjobyster/bysters" target="_blank" rel="noopener" aria-label="bysters on GitHub">GitHub <span class="star" aria-hidden="true">★</span></a>
+
+    <main>
+      <!-- =============== HERO: Pip crosses to fix a broken device =============== -->
+      <header class="scene hero" aria-label="bysters">
+        <div class="wrap hero-copy">
+          <p class="kicker">// a living layer for your web page</p>
+          <h1>bysters<span class="accent" aria-hidden="true">.</span></h1>
+          <p class="under">Little bots move onto your page, notice your cursor, and make themselves at home. Scroll down to meet them.</p>
+          <p class="sr">bysters is an open-source JavaScript library that brings any web page to life with small procedural bots that walk your layout, notice the cursor, and break and fix things.</p>
+        </div>
+
+        <!-- terrain (the little world). The beacon starts ON; click it to switch
+             it off and the bot notices and runs over to bring it back. -->
+        <div class="floor" data-walk id="hero-floor" style="left:8%; width:84%; bottom:120px; height:14px"></div>
+        <p class="fx-prompt" id="hero-prompt" style="left:calc(50% + 90px); bottom:190px">click to switch off</p>
+        <div class="fx fx-beacon" data-fixture="herodev" data-fixture-id="hero-dev" id="hero-dev"
+             data-states="fixed broken" data-state="fixed" data-transitions="fixed>broken broken>fixed"
+             style="left:calc(50% + 70px); bottom:134px" role="button" tabindex="0" aria-label="beacon device: click to toggle">
+          <span class="post"></span><span class="lamp"></span><span class="ring r1"></span><span class="ring r2"></span>
+        </div>
+
+        <p class="scrollcue" aria-hidden="true">SCROLL<span class="arw"></span></p>
+      </header>
+
+      <!-- =============== SCENE 2: Sarge chases Byte =============== -->
+      <section class="scene s2" aria-labelledby="s2title">
+        <div class="wrap scene-head">
+          <p class="eyebrow">many little minds</p>
+          <h2 id="s2title">Give each one its own behaviour, and the scene plays itself.</h2>
+          <p>No script, no timeline. One bot chases, another bolts, a third patches up whatever gets broken along the way. You hand each of them a few small habits and step back; everything above is them, not us.</p>
+        </div>
+
+        <div class="floor" data-walk id="s2-floor" style="left:8%; width:84%; bottom:70px; height:14px"></div>
+        <!-- close switchback stair (fixed offsets from centre so the shape holds
+             at any width): left, right, left, right -->
+        <div class="plat step" data-walk="top" style="left:calc(50% - 70px); bottom:118px; width:110px; height:14px"></div>
+        <div class="plat step" data-walk="top" style="left:calc(50% + 5px); bottom:160px; width:110px; height:14px"></div>
+        <div class="plat step" data-walk="top" style="left:calc(50% - 70px); bottom:202px; width:110px; height:14px"></div>
+        <div class="plat step" data-walk="top" style="left:calc(50% + 5px); bottom:244px; width:110px; height:14px"></div>
+        <!-- one final ledge at the top, the relay sitting ON it. Starts red; click
+             to turn it green and Byte scrambles up the stairs to wreck it. -->
+        <div class="plat" data-walk="top" id="s2-top" style="left:calc(50% - 45px); bottom:292px; width:150px; height:16px"></div>
+        <p class="fx-prompt" id="s2-prompt" style="left:calc(50% + 30px); bottom:352px">click to turn it blue</p>
+        <div class="fx fx-gadget" data-fixture="s2dev" data-fixture-id="s2-dev" id="s2-dev"
+             data-states="fixed broken" data-state="broken" data-transitions="fixed>broken broken>fixed"
+             style="left:calc(50% + 8px); bottom:308px" role="button" tabindex="0" aria-label="relay device: click to toggle">
+          <span class="body"></span><span class="fan-b"></span><span class="spark"></span>
+        </div>
+      </section>
+
+      <!-- =============== what you just watched (Winnow lives on these cards) =============== -->
+      <!-- Scene 3 IS this section: Winnow spawns on the recap cards and treats them
+           as terrain, walking their tops, scaling their walls and hanging beneath
+           them. The any-angle traversal is demonstrated on real content, not an
+           abstract prop. Each card carries data-walk="top bottom left right". -->
+      <section class="features" aria-labelledby="feat">
+        <div class="wrap">
+          <div class="head">
+            <p class="eyebrow center"><span class="n" aria-hidden="true">+</span> what you just watched</p>
+            <h2 id="feat">Not a canvas trick. A little society on your page.</h2>
+            <p>None of it was animated by hand. Each byster reads your real layout and the bots around it, decides for itself, and its personality is just the sum of a few small rules.</p>
+          </div>
+          <div class="grid">
+            <article class="card c1" data-walk="top bottom left right"><div class="ic" aria-hidden="true"><svg width="22" height="22" fill="none" stroke="#1eae63" stroke-width="2.4" stroke-linecap="round"><path d="M2 16h6v-6h6V4h6"/></svg></div><h3>Your DOM is their terrain</h3><p>They read your real layout as walls, floors and undersides and climb it from any angle. Resize the window and they re-plan the whole world on the fly.</p></article>
+            <article class="card c2" data-walk="top bottom left right"><div class="ic" aria-hidden="true"><svg width="22" height="22" fill="none" stroke="#2f42f0" stroke-width="2.4"><circle cx="11" cy="11" r="4"/><circle cx="11" cy="11" r="9"/></svg></div><h3>They notice you</h3><p>Each byster senses the cursor and every other byster, so they chase, flee, crowd and dodge without you scripting a single interaction.</p></article>
+            <article class="card c3" data-walk="top bottom left right"><div class="ic" aria-hidden="true"><svg width="22" height="22" fill="none" stroke="#f4741c" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h16M3 11h16M3 16h9"/></svg></div><h3>You write the personality</h3><p>A byster is a short stack of tiny habits: wander, chase, doze, perch, fix. Reorder the stack and you get a different character.</p></article>
+            <article class="card c4" data-walk="top bottom left right"><div class="ic" aria-hidden="true"><svg width="22" height="22" fill="none" stroke="#7a43e0" stroke-width="2.4" stroke-linecap="round"><path d="M11 2v6M11 2a4 4 0 0 1 0 8M6 20l5-8 5 8"/></svg></div><h3>Polite by default</h3><p>No WebGL, or a reduced-motion request? bysters quietly does nothing and hands your page back exactly as it found it.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <!-- =============== how it works =============== -->
+      <section class="how" aria-labelledby="howtitle">
+        <div class="wrap">
+          <div class="lede">
+            <p class="eyebrow"><span class="n" aria-hidden="true">+</span> how it works</p>
+            <h2 id="howtitle">Point it at your page. That is the setup.</h2>
+            <p>Mark what they can walk with one attribute, hand <code>mount()</code> your cast, and they wake up. Everything you scrolled past is about a dozen lines of this.</p>
+            <ul>
+              <li><b>+</b> compose behaviours from the built-in library</li>
+              <li><b>+</b> bring your own creatures, or use the pack</li>
+              <li><b>+</b> pure core, headless-tested, framework-agnostic</li>
+            </ul>
+          </div>
+          <div class="codewrap">
+            <div class="bar" aria-hidden="true"><i></i><i></i><i></i><span>app.js</span></div>
+            <pre><code><span class="c">// wake the cast up on your page</span>
+<span class="k">import</span> { mount, behaviors } <span class="k">from</span> <span class="s">'bysters'</span>
+<span class="k">const</span> { operateFixtures, flee, followCursor } = behaviors
+
+<span class="k">await</span> <span class="f">mount</span>({
+  terrain: <span class="s">'[data-walk]'</span>,     <span class="c">// what they climb</span>
+  fixtures: <span class="s">'[data-fixture]'</span>,  <span class="c">// what they operate</span>
+  bysters: [
+    { name: <span class="s">'byte'</span>, character: <span class="p">Byte</span>, behaviors: [
+      <span class="f">operateFixtures</span>({ match: (fx) =&gt; fx.state === <span class="s">'fixed'</span>, drive: <span class="s">'broken'</span> }),
+      <span class="f">flee</span>((v) =&gt; v.name === <span class="s">'sarge'</span>) ] },
+    { name: <span class="s">'pip'</span>,  character: <span class="p">Pip</span>, behaviors: [
+      <span class="f">operateFixtures</span>({ match: (fx) =&gt; fx.state === <span class="s">'broken'</span>, drive: <span class="s">'fixed'</span> }),
+      <span class="f">followCursor</span>() ] },
+  ],
+})</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- =============== closer =============== -->
+      <section class="closer" aria-labelledby="cta">
+        <div class="wrap">
+          <h2 id="cta">Give your page a pulse.</h2>
+          <p>Free and open source. Drop it into anything with a DOM and watch the place get inhabited.</p>
+          <div class="cta">
+            <a class="btn btn-primary" href="https://github.com/banjobyster/bysters" target="_blank" rel="noopener">Get it on GitHub</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span class="brand">bysters<span class="accent" aria-hidden="true">.</span></span>
+        <span class="meta">MIT licensed &nbsp;·&nbsp; creativity by banjobyster</span>
+      </div>
+    </footer>
+
+  </body>
+</html>

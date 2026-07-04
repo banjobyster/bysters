@@ -8,6 +8,8 @@ behaviours, and the page starts playing itself.
 **[Live demo](https://banjobyster.github.io/bysters/)** (scroll down, and hover the
 little bots)
 
+![The bysters landing page: a little bot has walked across the floor to switch a beacon back on](docs/hero.webp)
+
 ```js
 import { mount, behaviors } from 'bysters'
 const { wander, followCursor, flee } = behaviors
@@ -96,6 +98,8 @@ byster advertises and another reads:
 // the imp only fears the cop while the cop is not resting
 flee(v => v.name === 'cop' && !v.tags.has('winded'))
 ```
+
+![A switchback stair where one bot chases another: nothing is scripted, the chase comes out of each bot's own behaviour list](docs/chase.png)
 
 ### Fixtures: value-neutral stateful elements
 

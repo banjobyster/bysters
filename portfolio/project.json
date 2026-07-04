@@ -1,0 +1,10 @@
+{
+  "title": "bysters",
+  "tagline": "Tiny creatures that live on your web page",
+  "description": "A **JavaScript** library that brings any page to life with small procedural creatures. They read your **DOM** as terrain, walk it from any angle, sense the cursor and each other, and operate stateful elements. One import, a list of behaviours, and the page plays itself.",
+  "cover": "cover.webp",
+  "demo": "https://banjobyster.github.io/bysters/",
+  "accent": "rgba(47, 66, 240, 0.9)",
+  "tags": ["JavaScript", "PixiJS", "Procedural"],
+  "order": 35
+}

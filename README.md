@@ -11,7 +11,7 @@ little bots)
 ![The bysters landing page: a little bot has walked across the floor to switch a beacon back on](docs/hero.webp)
 
 ```js
-import { mount, behaviors } from 'bysters'
+import { mount, behaviors } from '@banjobyster/bysters'
 const { wander, followCursor, flee } = behaviors
 
 await mount({
@@ -46,7 +46,7 @@ only ever moves opaque state between opaque states.
 ## Install
 
 ```sh
-npm install bysters pixi.js
+npm install @banjobyster/bysters pixi.js
 ```
 
 `pixi.js` (v8) is a peer dependency: bysters renders through it.
@@ -70,7 +70,7 @@ under gravity). It re-plans the whole graph when the layout changes.
 ### Behaviours compose
 
 A personality is just a list. The built-in library (`import { behaviors }` or
-`import { ... } from 'bysters/behaviors'`) includes:
+`import { ... } from '@banjobyster/bysters/behaviors'`) includes:
 
 | behaviour | what it does |
 | --- | --- |
@@ -112,7 +112,7 @@ type anywhere in the code. The store mirrors state onto `data-state` for your CS
 ## API
 
 ```js
-import { mount, behaviors } from 'bysters'
+import { mount, behaviors } from '@banjobyster/bysters'
 ```
 
 ### `mount(config) -> handle`

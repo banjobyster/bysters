@@ -13,8 +13,8 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: [
-      { find: /^bysters$/, replacement: `${root}index.js` },
-      { find: /^bysters\/(.*)$/, replacement: `${root}$1` },
+      { find: /^@banjobyster\/bysters$/, replacement: `${root}index.js` },
+      { find: /^@banjobyster\/bysters\/(.*)$/, replacement: `${root}$1` },
     ],
   },
   build: { outDir: '../dist', emptyOutDir: true },

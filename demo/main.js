@@ -15,7 +15,7 @@
 // framework knows nothing of good/bad/fix/break. All that meaning is device CSS
 // (green = fixed, red = broken) and the consumer config below.
 
-import { mount, behaviors, LAUNCH, LAUNCH_AGILE, reachableVertexIds, nearestVertex } from 'bysters';
+import { mount, behaviors, LAUNCH, LAUNCH_AGILE, reachableVertexIds, nearestVertex } from '@banjobyster/bysters';
 import { Graphics } from 'pixi.js';
 import { CRT_TODDLER } from './characters/crt-toddler.js';
 import { GLITCH_IMP } from './characters/glitch-imp.js';

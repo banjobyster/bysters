@@ -188,8 +188,10 @@ code { font-family: var(--mono); }
 .codewrap .bar { display: flex; align-items: center; gap: 7px; padding: 13px 16px; background: #221913; }
 .codewrap .bar i { width: 11px; height: 11px; border-radius: 50%; background: #4a3a2c; } .codewrap .bar i:first-child { background: var(--amber); }
 .codewrap .bar span { margin-left: 10px; font-family: var(--mono); font-size: 12px; color: #8b7a68; }
-.codewrap pre { margin: 0; padding: 22px 20px; overflow-x: auto; }
-.codewrap code { font-size: 13.5px; line-height: 1.85; color: #f4ead9; }
+/* still horizontally scrollable (trackpad / drag), but without the bar showing */
+.codewrap pre { margin: 0; padding: 22px 20px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.codewrap pre::-webkit-scrollbar { display: none; }
+.codewrap code { font-size: 12.5px; line-height: 1.85; color: #f4ead9; }
 .codewrap .k { color: #ff9f2b; } .codewrap .s { color: #7ee0a3; } .codewrap .c { color: #6f5f50; } .codewrap .f { color: #8fa2ff; } .codewrap .p { color: #e5b6ff; }
 
 .closer { background: var(--cobalt); color: #fff; padding: 96px 0; position: relative; overflow: hidden; text-align: center; }

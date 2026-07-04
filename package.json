@@ -16,7 +16,7 @@
     "./behaviors": "./core/behavior/library.js",
     "./pixi": "./render/pixi/overlay.js"
   },
-  "files": ["index.js", "core", "dom", "render", "README.md", "LICENSE"],
+  "files": ["index.js", "core", "dom", "render", "README.md", "LICENSE", "!**/*.test.js"],
   "sideEffects": false,
   "scripts": {
     "dev": "vite",

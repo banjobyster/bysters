@@ -17,8 +17,6 @@
 
 import { mount, behaviors, LAUNCH, LAUNCH_AGILE, reachableVertexIds, nearestVertex } from 'bysters';
 import { Graphics } from 'pixi.js';
-import { qbez } from 'bysters/core/math.js';
-import { arcSamples } from 'bysters/core/path/ballistic.js';
 import { CRT_TODDLER } from './characters/crt-toddler.js';
 import { GLITCH_IMP } from './characters/glitch-imp.js';
 import { SARGE } from './characters/sarge.js';
@@ -138,10 +136,7 @@ function drawCables({ app, cast, store }) {
     const my = Math.max(cy, fx.y) + 14;
     const color = CABLE_COLOR[m.name] || 0xffffff;
     gCable.moveTo(cx, cy);
-    for (let i = 1; i <= 16; i++) {
-      const t = i / 16;
-      gCable.lineTo(qbez(cx, mx, fx.x, t), qbez(cy, my, fx.y, t));
-    }
+    gCable.quadraticCurveTo(mx, my, fx.x, fx.y); // a simple curved cable, drawn with Pixi's own bezier
     gCable.stroke({ width: 2, color, alpha: 0.85 });
     gCable.circle(fx.x, fx.y, 3).fill({ color, alpha: 0.9 });
   }
@@ -188,9 +183,14 @@ function drawDebug({ app, graph, cast }) {
     const a = graph.vertices[aId];
     for (const e of edges) {
       if (e.type !== 'jump') continue;
-      const pts = arcSamples(a, e.launch, e.launch.g, e.launch.t, 12);
-      gDebug.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) gDebug.lineTo(pts[i].x, pts[i].y);
+      // draw the arc the byster will fly, from the jump edge's public launch data
+      // (standard projectile motion: pos = start + v*t + 0.5*g*t^2)
+      const L = e.launch;
+      gDebug.moveTo(a.x, a.y);
+      for (let i = 1; i <= 12; i++) {
+        const t = (L.t * i) / 12;
+        gDebug.lineTo(a.x + L.vx * t, a.y + L.vy * t + 0.5 * L.g * t * t);
+      }
       gDebug.stroke({ width: 1, color: 0xe0a83c, alpha: 0.25 });
     }
   }

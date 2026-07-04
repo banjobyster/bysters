@@ -14,9 +14,7 @@
   "exports": {
     ".": "./index.js",
     "./behaviors": "./core/behavior/library.js",
-    "./pixi": "./render/pixi/overlay.js",
-    "./dom": "./dom/space.js",
-    "./core": "./core/robot.js"
+    "./pixi": "./render/pixi/overlay.js"
   },
   "files": ["index.js", "core", "dom", "render", "README.md", "LICENSE"],
   "sideEffects": false,

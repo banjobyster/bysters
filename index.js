@@ -27,7 +27,9 @@ export { Byster } from './core/behavior/byster.js';
 export { SurfaceMover } from './core/surface-mover.js';
 export { buildWorld } from './core/behavior/world.js';
 
-// Path engine + per-byster launch caps.
+// Path engine + per-byster launch caps. Jump edges carry their `launch` params
+// (vx, vy, t, g), so a consumer can draw the exact arc a byster will fly with
+// standard projectile math, no internal helper needed.
 export { compileSurfaceGraph } from './core/path/compile.js';
 export { planRoute, routeCosts, nearestVertex, reachableVertexIds, edgeAllowed, LAUNCH, LAUNCH_AGILE } from './core/path/graph.js';
 

@@ -128,14 +128,17 @@ const FACES = {
   },
   love(f) {
     // The swoon: bobbing heart eyes and a little open smile, for when the
-    // cursor is close enough to sidle right up to.
+    // cursor is close enough to sidle right up to. Drawn at the main level
+    // with one hot glint per heart, so a consumer accent palette (the demo
+    // swaps in a warm rose set while this face is up) reads as red hearts.
     const b = Math.sin(f.t * 6) > 0 ? 1 : 0;
     for (const c of [3, 10]) {
       const r = 3 - b;
-      f.px(c, r, 3);
-      f.px(c + 2, r, 3);
-      f.block(c, r + 1, 3, 1, 3);
-      f.px(c + 1, r + 2, 3);
+      f.px(c, r, 2);
+      f.px(c + 2, r, 2);
+      f.block(c, r + 1, 3, 1, 2);
+      f.px(c + 1, r + 2, 2);
+      f.px(c, r + 1, 3);
     }
     f.px(5, 8, 2);
     f.block(6, 9, 4, 1, 2);

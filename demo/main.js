@@ -25,7 +25,7 @@ import './main.css';
 
 const {
   operateFixtures, followCursor, wander, watchCursor, watchNearest,
-  approach, flee, caughtBy, reactTo, perch, fatigue, avoidCursorGaze, fleeCursor, liveliness, mood, flourish, sleep,
+  approach, flee, caughtBy, reactTo, perch, fatigue, avoidCursorGaze, fleeCursor, liveliness, mood, flourish,
 } = behaviors;
 
 const SARGE_CAPS = { maxLaunch: 770, gravity: 2400 }; // heavier than the imp, lighter than nothing
@@ -52,14 +52,15 @@ const CAST = [
       // (36, 42 as incumbent), while the beacon work (50) can still interrupt
       // the sprint (49 as incumbent).
       fatigue(followCursor({ face: 'eager', near: 150, priority: 43 }), { runFor: 7, restFor: 2.2, face: 'puff', minPace: 0.55 }),
-      followCursor({ face: 'love', near: 90, priority: 36 }),
-      // A toddler standstill (sleep re-skinned at just-above-wander priority):
-      // every few seconds he stops roaming and simply watches, which is where
-      // the idle face's tracking pupils get their showcase.
-      sleep({ awakeFor: 7, sleepFor: 3.5, face: 'idle', priority: 12 }),
-      wander(),
+      followCursor({ face: 'love', near: 60, priority: 36 }),
+      // No wander: it bids every frame and prefers LEAVING the current
+      // surface, so the instant the chase yielded near the cursor it dragged
+      // him away again and the recapture loop churned his face. His resting
+      // state is now standing and watching (the tracking idle pupils), with a
+      // purposeful stroll to a random spot every so often instead.
+      perch({ every: 16, dwell: 6, face: 'idle', priority: 35, pick: () => Math.random() }),
       watchCursor(),
-      flourish(['excited', 'wink', 'surprise', 'suspicious', 'dizzy', 'happy'], { every: 4.5, hold: 1.4 }),
+      flourish(['excited', 'wink', 'suspicious', 'happy'], { every: 6, hold: 1.4 }),
       liveliness({ base: DERATE, vary: 0.16, every: 3 }), // easy, gentle strides
       mood('idle'),
     ],
@@ -128,6 +129,22 @@ const CAST = [
     ],
   },
 ];
+
+// Consumer-driven face accent: while Pip's swoon face is up, swap his green
+// phosphor for a warm rose set so the hearts read red, and restore the
+// character palette the moment the face changes. setFacePalette is the
+// renderer's public accent hook; the expression itself stays palette-agnostic.
+const LOVE_PIX = [0, 0x8f2436, 0xff6b74, 0xffdfe4];
+function accentLove(cast) {
+  for (const m of cast) {
+    if (m.name !== 'pip' || !m.renderer) continue;
+    const inLove = m.mover.face.expr === 'love';
+    if (inLove !== (m.renderer.pix === LOVE_PIX)) {
+      m.renderer.setFacePalette(inLove ? LOVE_PIX : null);
+      m.mover.face.dirty = true; // force the re-blit in the new palette
+    }
+  }
+}
 
 // Consumer-drawn interaction visual: a cable from a plugged byster to its
 // fixture, tinted by who. The framework only reports it is plugged; the look is ours.
@@ -264,6 +281,7 @@ async function main() {
     ground: false, // tall multi-scene page: each scene brings its own floor
     shadow: false, // a ground shadow reads wrong on walls/undersides here; drop it
     onFrame: (f) => {
+      accentLove(f.cast);
       drawCables(f);
       if (debugOn) {
         drawDebug(f);
@@ -275,6 +293,20 @@ async function main() {
     debug: debugOn,
   });
   if (handle.degraded) return;
+
+  // Touch has no hover, so mirror every non-mouse pointerdown into the
+  // pointermove the engine's cursor sensing listens for: on a phone, tapping
+  // anywhere IS the cursor (Pip gives chase, Sarge glances over, Winnow bolts),
+  // so the page stays just as reactive without a mouse.
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      if (e.pointerType !== 'mouse') {
+        window.dispatchEvent(new PointerEvent('pointermove', { clientX: e.clientX, clientY: e.clientY, bubbles: true }));
+      }
+    },
+    { passive: true }
+  );
 
   // A human can operate the devices too: click one to flip it through the SAME
   // guarded store the bysters use, so a byster may immediately react.

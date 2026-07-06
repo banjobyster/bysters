@@ -3,7 +3,7 @@
 // a fake document, so no real DOM is needed.
 
 import { describe, it, expect } from 'vitest';
-import { walkableSides, surfaceForSide, surfacesForRect, collectSurfaces, collectFixtures, parseTransitions } from './collect.js';
+import { walkableSides, surfaceForSide, surfacesForRect, collectSurfaces, collectFixtures, collectWorld, parseTransitions, worldSignature } from './collect.js';
 import { FixedSpace } from './space.js';
 
 const elWith = (walk) => (walk === undefined ? { dataset: {} } : { dataset: { walk } });
@@ -97,5 +97,78 @@ describe('data-fixture parses into value-neutral Fixture definitions', () => {
     });
     expect(fixtures[0].id).toBe('rack-0'); // generated (no id/data-fixture-id)
     expect(fixtures[1]).toMatchObject({ id: 'bay-el', type: 'bay', state: 'open' }); // falls back to element id + first state
+  });
+});
+
+describe('worldSignature: rebuilds key off what changed, not which event fired', () => {
+  // A tiny page: one walkable box and one fixture, collected through a FixedSpace.
+  const makePage = (rectA = { x: 0, y: 100, w: 200, h: 40 }, fxState = 'open') => {
+    const walk = { dataset: { walk: 'top left' } };
+    const fx = { dataset: { fixture: 'bay', fixtureId: 'bay-1', states: 'open shut', state: fxState } };
+    const space = new FixedSpace({
+      rects: new Map([
+        [walk, rectA],
+        [fx, { x: 300, y: 100, w: 30, h: 30 }],
+      ]),
+    });
+    const doc = { querySelectorAll: (sel) => (sel === '[data-fixture]' ? [fx] : [walk]) };
+    const world = collectWorld(space, { ground: false, doc });
+    const fixtures = collectFixtures(space, { doc });
+    return { walk, fx, space, doc, world, fixtures };
+  };
+
+  it('an identical re-collection has an identical signature (skip the rebuild)', () => {
+    const p = makePage();
+    const again = collectWorld(p.space, { ground: false, doc: p.doc });
+    expect(worldSignature(again, collectFixtures(p.space, { doc: p.doc }))).toBe(worldSignature(p.world, p.fixtures));
+  });
+
+  it('sub-pixel jitter rounds away; a real move changes the signature', () => {
+    const p1 = makePage({ x: 0, y: 100, w: 200, h: 40 });
+    const doc1 = { querySelectorAll: (sel) => (sel === '[data-fixture]' ? [p1.fx] : [p1.walk]) };
+    // same elements, same rounded pixels: same world
+    const jitterSpace = new FixedSpace({
+      rects: new Map([
+        [p1.walk, { x: 0.3, y: 100.2, w: 199.9, h: 40 }],
+        [p1.fx, { x: 300.4, y: 99.8, w: 30.1, h: 30 }],
+      ]),
+    });
+    expect(worldSignature(collectWorld(jitterSpace, { ground: false, doc: doc1 }), collectFixtures(jitterSpace, { doc: doc1 }))).toBe(
+      worldSignature(p1.world, p1.fixtures),
+    );
+    // a real move (>= 1px) is a different world
+    const moved = new FixedSpace({
+      rects: new Map([
+        [p1.walk, { x: 0, y: 130, w: 200, h: 40 }],
+        [p1.fx, { x: 300, y: 100, w: 30, h: 30 }],
+      ]),
+    });
+    expect(worldSignature(collectWorld(moved, { ground: false, doc: doc1 }), collectFixtures(moved, { doc: doc1 }))).not.toBe(
+      worldSignature(p1.world, p1.fixtures),
+    );
+  });
+
+  it('a fixture STATE flip does not change the signature (state is live data, not layout)', () => {
+    const open = makePage(undefined, 'open');
+    // flip the state on the SAME elements, re-collect
+    open.fx.dataset.state = 'shut';
+    const flipped = collectFixtures(open.space, { doc: open.doc });
+    expect(worldSignature(open.world, flipped)).toBe(worldSignature(open.world, open.fixtures));
+  });
+
+  it('new elements on identical pixels ARE a new world (fixtures hold live els)', () => {
+    const a = makePage();
+    const b = makePage(); // same geometry, brand-new element objects
+    expect(worldSignature(b.world, b.fixtures)).not.toBe(worldSignature(a.world, a.fixtures));
+  });
+
+  it('the synthesized ground follows the viewport, so its signature tracks scroll', () => {
+    const walk = { dataset: {} };
+    const space = new FixedSpace({ rects: new Map([[walk, { x: 0, y: 100, w: 200, h: 40 }]]) });
+    const doc = { querySelectorAll: () => [walk] };
+    const before = worldSignature(collectWorld(space, { ground: true, doc }), []);
+    space.setScroll(0, 250);
+    const after = worldSignature(collectWorld(space, { ground: true, doc }), []);
+    expect(after).not.toBe(before);
   });
 });

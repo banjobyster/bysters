@@ -121,6 +121,45 @@ export function collectWorld(space, { source = '[data-walk]', ground = true, doc
   return { surfaces, solids };
 }
 
+// --- world signature ---------------------------------------------------------
+//
+// A stable fingerprint of a collected world: the geometry and identity of every
+// surface, solid and fixture, rounded to whole pixels. Two collections with the
+// same signature describe the same world, so a mount can skip a rebuild that an
+// event (a mobile URL-bar resize, a ResizeObserver tick from an unrelated
+// layout wiggle) queued but that changed nothing. Fixture STATE is deliberately
+// excluded: state is live data that flows through the store, not layout, and a
+// state flip must never read as "the world changed".
+//
+// Element identity is part of the signature: a data swap that lands new nodes
+// on identical pixels still changes the world, because fixtures hold live els.
+let elSeq = 0;
+const elIds = new WeakMap();
+function elId(el) {
+  if (el == null) return 0;
+  let id = elIds.get(el);
+  if (id == null) {
+    id = ++elSeq;
+    elIds.set(el, id);
+  }
+  return id;
+}
+
+export function worldSignature({ surfaces = [], solids = [] } = {}, fixtures = []) {
+  const r = Math.round;
+  const parts = [];
+  for (const s of surfaces) parts.push(`s:${s.side}:${elId(s.el)}:${r(s.a.x)},${r(s.a.y)},${r(s.b.x)},${r(s.b.y)}`);
+  for (const b of solids) parts.push(`b:${elId(b.el)}:${r(b.x)},${r(b.y)},${r(b.w)},${r(b.h)}`);
+  for (const f of fixtures) {
+    parts.push(
+      `f:${f.id}:${f.type}:${elId(f.el)}:${r(f.x)},${r(f.y)},${r(f.w)},${r(f.h)}:${f.states.join('|')}:${f.guards
+        .map((g) => g.join('>'))
+        .join('|')}:${f.bysterBehavior || ''}`,
+    );
+  }
+  return parts.join(';');
+}
+
 // Parse a `data-transitions` string into guard pairs.
 //   "neutral>failed failed>fixed" -> [['neutral','failed'], ['failed','fixed']]
 // Omitted / empty means no guards (any declared state to any other).

@@ -14,7 +14,7 @@
 import { createOverlay } from '../render/pixi/overlay.js';
 import { RobotRenderer } from '../render/pixi/robot-renderer.js';
 import { DocumentSpace } from './space.js';
-import { collectWorld, collectFixtures } from './collect.js';
+import { collectWorld, collectFixtures, worldSignature } from './collect.js';
 import { compileSurfaceGraph } from '../core/path/compile.js';
 import { LAUNCH, LAUNCH_AGILE, nearestVertex } from '../core/path/graph.js';
 import { SurfaceMover } from '../core/surface-mover.js';
@@ -138,11 +138,23 @@ export async function mount(config = {}) {
     if (fx.el) fx.el.dataset.state = fx.state; // mirror store -> data-state for consumer CSS
   };
 
+  // Rebuild reconciles the simulation with the page, so it is guarded by what
+  // actually changed, not by which event fired: resize, scroll and
+  // ResizeObserver only QUEUE a check, and a collection whose signature matches
+  // the last build is a no-op. This is what keeps a mobile URL-bar show/hide
+  // (a resize event with an unchanged layout) or an unrelated layout wiggle
+  // from resetting the whole scene. Fixture state is excluded from the
+  // signature (and survives a real rebuild anyway via the data-state mirror).
+  let worldSig = null;
   const rebuild = () => {
     if (disposed) return;
     const { surfaces, solids } = collectWorld(space, { source: terrainSel, ground: groundOn });
+    const fixtureDefs = fixturesSel ? collectFixtures(space, { source: fixturesSel }) : [];
+    const sig = worldSignature({ surfaces, solids }, fixtureDefs);
+    if (sig === worldSig) return;
+    worldSig = sig;
     graph = compileSurfaceGraph(surfaces, solids, LAUNCH_AGILE);
-    store = fixturesSel ? createFixtureStore(collectFixtures(space, { source: fixturesSel }).map(makeFixture)) : null;
+    store = fixturesSel ? createFixtureStore(fixtureDefs.map(makeFixture)) : null;
     if (store) {
       for (const fx of store.all()) paint(fx);
       store.subscribe((fx) => paint(fx));

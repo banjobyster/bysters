@@ -66,3 +66,20 @@ describe('FX-2: transition guards restrict from>to moves', () => {
     expect(canTransition(fx, 'exploded')).toBe(false); // undeclared state
   });
 });
+
+describe('store history: a recreated store keeps its audited record', () => {
+  it('seeds the log from a prior store and continues seq after it', () => {
+    const mk = () => makeFixture({ id: 'bay', states: ['open', 'shut'] });
+    const first = createFixtureStore([mk()]);
+    first.transition('bay', 'shut', 'imp');
+    first.transition('bay', 'open', null);
+    // the world recompiled: same fixtures, new store, history carried forward
+    const second = createFixtureStore([mk()], { history: first.log });
+    expect(second.log).toHaveLength(2);
+    expect(second.log).not.toBe(first.log); // copied, never aliased
+    second.transition('bay', 'shut', 'imp');
+    expect(second.log).toHaveLength(3);
+    expect(second.log.map((l) => l.seq)).toEqual([0, 1, 2]); // one unbroken record
+    expect(second.log[2].by).toBe('imp');
+  });
+});

@@ -469,6 +469,23 @@ describe('group(): fuse behaviors into one bid, later wins per channel', () => {
   });
 });
 
+describe('Byster.rebase(): the graph changed underneath, the mind persists', () => {
+  it('drops the routed goal and pending command; behaviors and tags stay', () => {
+    const g = groundGraph();
+    const mover = new SurfaceMover(CHAR);
+    mover.spawn(g, 0, 120, LAUNCH_AGILE);
+    const keepState = { id: 'k', priority: 10, channels: ['locomotion'], _count: 7, update: () => null };
+    const b = new Byster('scout', mover, [keepState]);
+    b.command(3);
+    b.tags.add('busy');
+    b.rebase();
+    expect(b._command).toBeNull(); // an old-graph vertex id means nothing now
+    expect(b._goal).toBeNull();
+    expect(b.behaviors[0]._count).toBe(7); // mid-episode behavior state untouched
+    expect(b.tags.has('busy')).toBe(true);
+  });
+});
+
 describe('face sensing: one byster reads another expression through world.bysters', () => {
   it('a mimic behavior copies the model face it senses in the snapshot', () => {
     const g = groundGraph();

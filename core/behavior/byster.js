@@ -42,6 +42,15 @@ export class Byster {
     this._command = vertexId;
   }
 
+  // The graph changed under this byster (a rebuild): body and mind persist, but
+  // the routed goal and any pending command are vertex ids of the OLD graph, so
+  // both drop. Behaviors keep their own state and simply replan next frame.
+  rebase() {
+    this._goal = null;
+    this._command = null;
+    this._replan = 0;
+  }
+
   // The read/write-through-intents view a behavior gets as `self`.
   _self(world) {
     const m = this.mover;

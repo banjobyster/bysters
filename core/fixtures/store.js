@@ -12,11 +12,15 @@
 
 import { canTransition } from './fixture.js';
 
-export function createFixtureStore(fixtures = []) {
+// opts.history: a prior store's log to carry forward, so a store recreated over
+// the same world (a layout rebuild) keeps its full audited record instead of
+// amnesia; seq continues after the inherited entries. The entries are copied,
+// never aliased, and stay value-neutral facts ("A moved F from X to Y at N").
+export function createFixtureStore(fixtures = [], { history = [] } = {}) {
   const byId = new Map();
   const listeners = new Set();
-  const log = []; // ordered record of applied transitions: { id, from, to, by, seq }
-  let seq = 0;
+  const log = [...history]; // ordered record of applied transitions: { id, from, to, by, seq }
+  let seq = log.length ? log[log.length - 1].seq + 1 : 0;
   for (const fx of fixtures) byId.set(fx.id, fx);
 
   return {

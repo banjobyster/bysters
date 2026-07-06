@@ -270,3 +270,74 @@ describe('fluidity: one continuous glide along a surface, no per-vertex stutter'
     expect(Math.min(...cruise)).toBeGreaterThan(90);
   });
 });
+
+describe('rebase: adopt a recompiled graph in place (the world moved, the byster did not)', () => {
+  // The same page twice: box W sits `shift` px lower in the second compile,
+  // the way a card shifts when a log line lands above it.
+  const compileAt = (shift) => {
+    const W = { x: 200, y: 200 + shift, w: 100, h: 100 };
+    const surfaces = [];
+    for (const s of surfacesForRect(W, ['top', 'left', 'right'], 'W')) surfaces.push(s);
+    surfaces.push(surfaceForSide({ x: -200, y: 400, w: 900, h: 0 }, 'top', null, { ground: true }));
+    return compileSurfaceGraph(surfaces, [{ ...W, el: 'W' }], LAUNCH_AGILE);
+  };
+
+  it('a surviving surface keeps its rider: same along-position, new location', () => {
+    const gA = compileAt(0);
+    const gB = compileAt(40);
+    const m = new SurfaceMover(CHAR);
+    m.spawn(gA, surfaceIx(gA, 'W', 'top'), 50, LAUNCH_AGILE);
+    const before = { x: m.x, bodyY: m.bodyY };
+    m.rebase(gB, LAUNCH_AGILE);
+    expect(m.graph).toBe(gB);
+    expect(m.surface).toBe(surfaceIx(gB, 'W', 'top'));
+    expect(m.x).toBeCloseTo(before.x, 5); // same spot along the box top
+    expect(m.bodyY).toBeCloseTo(before.bodyY + 40, 5); // riding the box to its new place
+    expect(m.state).toBe('idle');
+  });
+
+  it('drops a mid-walk route (old-graph steps) but keeps the body where it stood', () => {
+    Math.random = mulberry32(9);
+    const gA = compileAt(0);
+    const m = new SurfaceMover(CHAR);
+    m.spawn(gA, groundIx(gA), 60, LAUNCH_AGILE);
+    const far = gA.vertices.reduce((a, b) => (b.x > a.x ? b : a));
+    expect(m.routeTo(far.id)).toBe(true);
+    for (let i = 0; i < 30; i++) m.update(1 / 60, { autoWander: false });
+    expect(m.state).toBe('walk');
+    const xBefore = m.x;
+    m.rebase(compileAt(0), LAUNCH_AGILE);
+    expect(m.route).toBeNull(); // the old route referenced the old graph
+    expect(m.state).toBe('idle'); // at rest where it was, ready to replan
+    expect(Math.abs(m.x - xBefore)).toBeLessThan(1);
+  });
+
+  it('a vanished surface settles its rider at the nearest walkable spot', () => {
+    const gA = compileAt(0);
+    const gNoBox = compileSurfaceGraph(
+      [surfaceForSide({ x: -200, y: 400, w: 900, h: 0 }, 'top', null, { ground: true })],
+      [],
+      LAUNCH_AGILE,
+    );
+    const m = new SurfaceMover(CHAR);
+    m.spawn(gA, surfaceIx(gA, 'W', 'top'), 50, LAUNCH_AGILE);
+    const xBefore = m.x;
+    m.rebase(gNoBox, LAUNCH_AGILE);
+    expect(m.graph).toBe(gNoBox);
+    expect(m.surface).toBe(groundIx(gNoBox)); // dropped to the ground below
+    expect(Math.abs(m.x - xBefore)).toBeLessThan(40); // near where it was, not at a spawn anchor
+    expect(m.state).toBe('idle');
+  });
+
+  it('the synthesized ground matches itself across compiles (el-less, meta.ground)', () => {
+    const gA = compileAt(0);
+    const gB = compileAt(40);
+    const m = new SurfaceMover(CHAR);
+    m.spawn(gA, groundIx(gA), 120, LAUNCH_AGILE);
+    const before = { x: m.x, bodyY: m.bodyY };
+    m.rebase(gB, LAUNCH_AGILE);
+    expect(m.surface).toBe(groundIx(gB));
+    expect(m.x).toBeCloseTo(before.x, 5);
+    expect(m.bodyY).toBeCloseTo(before.bodyY, 5);
+  });
+});

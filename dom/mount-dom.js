@@ -145,6 +145,13 @@ export async function mount(config = {}) {
   // (a resize event with an unchanged layout) or an unrelated layout wiggle
   // from resetting the whole scene. Fixture state is excluded from the
   // signature (and survives a real rebuild anyway via the data-state mirror).
+  //
+  // And when the world HAS changed, a rebuild changes the geometry, not the
+  // population: the graph and stage are recompiled, but every byster keeps its
+  // body (rebased onto the new graph in place), its mind (behavior state,
+  // mid-episode timers), and the store keeps its audited history. A page that
+  // reacts to its own actors (a log line lands, a card grows) reshapes terrain
+  // constantly; the show must ride those changes, not restart on them.
   let worldSig = null;
   const rebuild = () => {
     if (disposed) return;
@@ -154,7 +161,9 @@ export async function mount(config = {}) {
     if (sig === worldSig) return;
     worldSig = sig;
     graph = compileSurfaceGraph(surfaces, solids, LAUNCH_AGILE);
-    store = fixturesSel ? createFixtureStore(fixtureDefs.map(makeFixture)) : null;
+    store = fixturesSel
+      ? createFixtureStore(fixtureDefs.map(makeFixture), { history: store ? store.log : [] })
+      : null;
     if (store) {
       for (const fx of store.all()) paint(fx);
       store.subscribe((fx) => paint(fx));
@@ -163,9 +172,17 @@ export async function mount(config = {}) {
     const gi = groundIx();
     cast.forEach((m, i) => {
       const caps = m.spec.caps || LAUNCH;
-      // spawnAt seats a byster at a specific element (its scene's floor); the
-      // numeric spawn frac is the single-ground legacy path. Either way, a
-      // rebuild re-seats it in its own region, never on a shared moving ground.
+      // A later rebuild: the population persists. The mover rebases onto the
+      // new graph where it stands, the mind drops only its old-graph goals.
+      if (m.byster) {
+        m.mover.rebase(graph, caps);
+        m.byster.rebase();
+        stage.add(m.byster);
+        return;
+      }
+      // The FIRST build: placement intent applies. spawnAt seats a byster at a
+      // specific element (its scene's floor); the numeric spawn frac is the
+      // single-ground legacy path.
       if (m.spec.spawnAt != null) {
         const el = typeof m.spec.spawnAt === 'string' ? document.querySelector(m.spec.spawnAt) : m.spec.spawnAt;
         const r = el ? space.read().rectOf(el) : null;

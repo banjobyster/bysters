@@ -147,6 +147,34 @@ export class SurfaceMover {
     this.spawn(graph, surfaceIx, along, caps);
   }
 
+  // Adopt a recompiled graph IN PLACE: the world's geometry changed (a card grew,
+  // a console reflowed, the layout shifted), the byster did not. If its surface
+  // survived the recompile (same element, same side) it keeps riding it at the
+  // same along-position, wherever that surface now sits, so a byster whose floor
+  // moved simply moves with its floor. The route is dropped either way (its steps
+  // reference the old graph); the mind replans from here next frame. If the
+  // surface is gone, or the byster is mid-arc toward an index that no longer
+  // means anything, it settles at the nearest walkable spot to where it was.
+  // Placement intent (spawn / spawnAt) is a first-build concern; after that a
+  // byster's position is its own.
+  rebase(graph, caps) {
+    const old = this.graph ? this.graph.surfaces[this.surface] : null;
+    const sameSurface = (s) =>
+      s.side === old.side &&
+      (old.el != null ? s.el === old.el : !!(s.meta && s.meta.ground && old.meta && old.meta.ground));
+    const ix = old && this.state !== 'air' ? graph.surfaces.findIndex(sameSurface) : -1;
+    if (ix < 0) {
+      this.spawnNear(graph, this.x, this.bodyY, caps);
+      return;
+    }
+    this.halt(); // drops the old-graph route and queued goal, keeps position
+    this.graph = graph;
+    this.caps = caps;
+    this.surface = ix;
+    this.p = clamp(this.p, 2, this._frameOf(ix).length - 2);
+    this._syncGround(0);
+  }
+
   // Plan and follow a route to a goal vertex. Returns false when there is no route
   // from here. While airborne the request is queued and taken on landing (so a jump
   // is never cut short) and returns true meaning "queued, not yet validated": the

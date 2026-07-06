@@ -67,15 +67,18 @@ const FACES = {
   // point away from the cursor, so they still never aim at the viewer. Used
   // for the curious flourish.
   peek(f) {
-    // 2x2 hot pupils: at her low alpha and soft palette, single pixels vanish.
-    const gx = Math.round(f.gazeX);
-    const pr = Math.min(Math.max(4 + Math.round(f.gazeY * 0.8), 4), 5);
-    f.block(3, 4, 3, 3, 2);
-    f.block(Math.min(Math.max(4 + gx, 3), 4), pr, 2, 2, 3);
+    // 2x2 pupils punched DARK (value 0 lets the near-black screen through):
+    // her eye plates are pale teal, so a hot pupil is light-on-light mush,
+    // while a dark hole reads instantly and its drift shows the gaze. The
+    // plates are 4x4 so a lit rim always frames the hole.
+    const gx = Math.round(f.gazeX * 1.6);
+    const pr = Math.min(Math.max(4 + Math.round(f.gazeY * 0.8), 3), 5);
+    f.block(2, 3, 4, 4, 2);
+    f.block(Math.min(Math.max(3 + gx, 2), 4), pr, 2, 2, 0);
     f.px(6, 5, 1);
-    f.block(10, 4, 3, 3, 2);
-    f.block(Math.min(Math.max(11 + gx, 10), 11), pr, 2, 2, 3);
-    f.px(13, 5, 1);
+    f.block(10, 3, 4, 4, 2);
+    f.block(Math.min(Math.max(11 + gx, 10), 12), pr, 2, 2, 0);
+    f.px(14, 5, 1);
     f.block(6, 9, 4, 1, 2);
   },
   // Avoids eye contact: the picture ROLLS away, a bright-edged band sliding up,

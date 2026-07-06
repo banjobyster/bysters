@@ -67,14 +67,16 @@ const FACES = {
     f.block(6, 9, 4, 1, 1);
   },
   // Spotted the culprit: a hot searchlight bar sweeps the top row (the beacon
-  // read), eyes snap wide with hot pupils, mouth barks open.
+  // read), eyes snap wide with hot pupils locked on the culprit, mouth barks open.
   alert(f) {
     const sc = Math.round((Math.sin(f.t * 6) * 0.5 + 0.5) * (f.w - 3));
     f.block(sc, 0, 3, 1, 3);
-    f.block(2, 3, 4, 4, 1);
-    f.block(3, 4, 2, 2, 3);
-    f.block(10, 3, 4, 4, 1);
-    f.block(11, 4, 2, 2, 3);
+    const gx = Math.round(f.gazeX);
+    const gy = Math.round(f.gazeY * 0.8);
+    for (const c of [2, 10]) {
+      f.block(c, 3, 4, 4, 1);
+      f.block(Math.min(Math.max(c + 1 + gx, c), c + 2), Math.min(Math.max(4 + gy, 3), 5), 2, 2, 3);
+    }
     const open = Math.sin(f.t * 12) > 0 ? 1 : 0;
     f.block(6, 8, 4, 1 + open, 2);
     f.block(7, 8, 2, 1, 3);

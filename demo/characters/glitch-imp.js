@@ -59,14 +59,19 @@ const PARAMS = {
 };
 
 const FACES = {
-  // Idle IS a scheme: round eyes glancing to the side, a little smirk.
+  // Idle IS a scheme: round eyes glancing sideways, a little smirk. The
+  // glance rests to the right but rides the gaze, so the plotting follows
+  // whoever wanders close.
   idle(f) {
-    f.block(3, 3, 4, 4, 1);
-    f.block(9, 3, 4, 4, 1);
-    f.block(5, 4, 2, 2, 2);
-    f.block(11, 4, 2, 2, 2);
-    f.px(6, 4, 3);
-    f.px(12, 4, 3);
+    const gx = Math.round(f.gazeX * 1.5);
+    const gy = Math.round(f.gazeY * 0.8);
+    for (const c of [3, 9]) {
+      f.block(c, 3, 4, 4, 1);
+      const ic = Math.min(Math.max(c + 2 + gx, c), c + 2);
+      const ir = Math.min(Math.max(4 + gy, 3), 5);
+      f.block(ic, ir, 2, 2, 2);
+      f.px(ic + 1, ir, 3);
+    }
     f.block(6, 9, 4, 1, 2);
     f.px(9, 8, 2); // upturned corner
   },
@@ -102,13 +107,16 @@ const FACES = {
     f.px(1, 2, tw ? 3 : 1);
     f.px(14, 3, tw ? 1 : 3);
   },
-  // Caught: huge round eyes with tiny bright pupils, a small o, a jitter.
+  // Caught: huge round eyes with tiny bright pupils locked on the threat,
+  // a small o, a jitter.
   panic(f) {
     const j = ((f.t * 18) | 0) % 2;
-    f.block(2 + j, 2, 4, 5, 1);
-    f.block(3 + j, 3, 2, 2, 3);
-    f.block(10 - j, 2, 4, 5, 1);
-    f.block(11 - j, 3, 2, 2, 3);
+    const gx = Math.round(f.gazeX);
+    const gy = Math.round(f.gazeY * 0.8);
+    for (const c of [2 + j, 10 - j]) {
+      f.block(c, 2, 4, 5, 1);
+      f.block(Math.min(Math.max(c + 1 + gx, c), c + 2), Math.min(Math.max(3 + gy, 2), 5), 2, 2, 3);
+    }
     f.block(7, 9, 2, 1, 2);
   },
   // Botched it: dizzy cross eyes, a wavy oops mouth.

@@ -62,26 +62,33 @@ const FACES = {
     f.block(10, 5, 2, 2, 1);
   },
   // Shy almost-contact: the snow thins, eyes firm up with a hot pupil and a
-  // faint de-ghosting echo, a small soft mouth, held in a hush. Never aims at
-  // the cursor. Used for the curious flourish.
+  // faint de-ghosting echo, a small soft mouth, held in a hush. The pupils
+  // ride the gaze, and her gaze behavior (avoidCursorGaze) mirrors the look
+  // point away from the cursor, so they still never aim at the viewer. Used
+  // for the curious flourish.
   peek(f) {
+    const gx = Math.round(f.gazeX);
+    const pr = Math.min(Math.max(5 + Math.round(f.gazeY * 0.8), 4), 6);
     f.block(3, 4, 3, 3, 2);
-    f.px(4, 5, 3);
+    f.px(Math.min(Math.max(4 + gx, 3), 5), pr, 3);
     f.px(6, 5, 1);
     f.block(10, 4, 3, 3, 2);
-    f.px(11, 5, 3);
+    f.px(Math.min(Math.max(11 + gx, 10), 12), pr, 3);
     f.px(13, 5, 1);
     f.block(6, 9, 4, 1, 2);
   },
   // Avoids eye contact: the picture ROLLS away, a bright-edged band sliding up,
-  // pupils pinned to the far edges. Bashful, not distressed. Animated.
+  // pupils pinned to the far edge the gaze points at (her gaze behavior mirrors
+  // away from the cursor, so that edge is always the escape side). Bashful,
+  // not distressed. Animated.
   lookaway(f) {
     const band = f.h - 1 - (((f.t * 4) | 0) % f.h);
     f.block(0, band, f.w, 1, 2);
+    const g = Math.round(f.gazeX * 2);
     f.block(3, 5, 3, 2, 1);
-    f.px(3, 5, 2);
+    f.px(Math.min(Math.max(4 + g, 3), 5), 5, 2);
     f.block(10, 5, 3, 2, 1);
-    f.px(12, 5, 2);
+    f.px(Math.min(Math.max(11 + g, 10), 12), 5, 2);
   },
   // A beat off in its own world: a soft test-pattern sliver blooms and fades.
   dream(f) {
@@ -127,7 +134,7 @@ export const WINNOW = {
   face: {
     w: 16,
     h: 12,
-    animated: ['idle', 'lookaway', 'dim', 'dream'],
+    animated: ['idle', 'lookaway', 'dim', 'dream', 'peek'],
     exprs: FACES,
   },
 

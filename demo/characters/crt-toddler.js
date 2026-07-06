@@ -74,10 +74,11 @@ const FACES = {
     f.block(7, 9, 2, 1, 1); // small resting mouth
   },
   curious(f) {
-    // One eye wide, the other squinting, a raised brow pixel row.
+    // One eye wide, the other squinting, a raised brow pixel row; the
+    // squint's pupil slides along the lid to follow the gaze.
     f.eye(2, 2, 4, 5, true);
     f.block(10, 5, 3, 2, 1);
-    f.px(11, 6, 2);
+    f.px(Math.min(Math.max(11 + Math.round(f.gazeX), 10), 12), 6, 2);
     f.block(10, 2, 3, 1, 1);
   },
   happy(f) {
@@ -172,8 +173,9 @@ const FACES = {
     for (let x = 5; x <= 10; x++) f.px(x, 9, x % 2 ? 2 : 1);
   },
   suspicious(f) {
-    // Flat-lidded eyes, both pupils sweeping slowly side to side in sync.
-    const sl = Math.round(Math.sin(f.t * 2.2) * 1.4);
+    // Flat-lidded eyes, both pupils pinned on the gaze, so the once-over
+    // literally follows whatever it is sizing up.
+    const sl = Math.round(f.gazeX * 1.6);
     for (const c of [3, 10]) {
       f.block(c, 4, 3, 2, 1);
       f.px(Math.min(Math.max(c + 1 + sl, c), c + 2), 5, 3);

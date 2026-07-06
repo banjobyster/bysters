@@ -77,11 +77,11 @@ A personality is just a list. The built-in library (`import { behaviors }` or
 | `wander()` | amble to a random reachable spot |
 | `followCursor()` / `fleeCursor({ alpha })` | seek or bolt from the pointer (bolt can turn glassy) |
 | `watchCursor()` / `watchNearest()` / `avoidCursorGaze()` | where it looks |
-| `approach(pred)` / `flee(pred)` | chase or run from a matching byster (route-aware) |
+| `approach(pred, { standoff })` / `flee(pred)` | chase or run from a matching byster (route-aware); `standoff` px makes it an escort that settles BESIDE its target, never on top of it |
 | `caughtBy(pred)` / `reactTo(pred)` | freeze when caught, or react to another's state |
 | `operateFixtures({ match, drive })` | drive a stateful element toward a target state |
 | `perch()` / `sleep()` / `mood()` / `flourish()` / `liveliness()` | idle life |
-| `fatigue(inner)` / `sometimes(inner)` | higher-order wrappers around any behaviour |
+| `fatigue(inner)` / `sometimes(inner)` / `group(...inner)` | higher-order wrappers: tire it out, gate it on a coin flip, or fuse several into one unit (later bids win overlapping channels) |
 
 Behaviours are **pure**: given the world and themselves, they return intents. They
 never touch each other. Adding a byster edits no other byster.
@@ -90,7 +90,7 @@ never touch each other. Adding a byster edits no other byster.
 
 Interaction is decentralised. A byster reacts to the others from its own behaviour
 code, through `world.bysters` and each other's read-only `view()`
-(`{ name, x, bodyY, surface, state, caps, tags }`). A byster can **broadcast tags**
+(`{ name, x, bodyY, surface, state, caps, tags, face }`). A byster can **broadcast tags**
 that others sense, so "the cop is tired" or "the imp is caught" is just a string one
 byster advertises and another reads:
 

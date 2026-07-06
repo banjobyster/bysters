@@ -95,15 +95,43 @@ export function watchNearest({ priority = 20 } = {}) {
 
 // Move toward the nearest byster matching `predicate` (within `notice`), watch
 // it, and show `face`. This is chase / approach / follow, parameterized.
-export function approach(predicate, { priority = 60, notice = 340, face = 'curious' } = {}) {
+//
+// `standoff` (px) turns the chase into an escort: instead of piling onto the
+// target, seek a berth `standoff` px to its SIDE and never pick a vertex inside
+// its personal space (within standoff/2 of it), so a follower stands beside its
+// target rather than on top of it. Which side is chosen by where the follower
+// already is, live while it is far (no crossing risk out there) and frozen once
+// it is within 2x standoff, so the follower never cuts through its target to
+// reach a berth on the other flank. The personal-space veto falls back to the
+// full reachable set if it would empty it: standing too close beats stranding.
+export function approach(predicate, { priority = 60, notice = 340, face = 'curious', standoff = 0 } = {}) {
   return {
     id: 'approach',
     priority,
     channels: ['locomotion', 'gaze', 'face'],
+    _side: null,
     update(world, self) {
       const target = world.bysters.nearestMatching(self, predicate, notice);
-      if (!target) return null;
-      const goal = pickReachable(self, world, (p) => -Math.hypot(p.x - target.x, p.y - target.bodyY));
+      if (!target) {
+        this._side = null;
+        return null;
+      }
+      let aim = { x: target.x, y: target.bodyY };
+      let seeker = self;
+      if (standoff > 0) {
+        const away = Math.hypot(self.x - target.x, self.bodyY - target.bodyY) > standoff * 2;
+        if (away || this._side == null) this._side = Math.sign(self.x - target.x) || 1;
+        aim = { x: target.x + this._side * standoff, y: target.bodyY };
+        const keep = new Set();
+        for (const id of self.reachable) {
+          const p = world.nav.vertexPoint(id);
+          if (!p || Math.hypot(p.x - target.x, p.y - target.bodyY) > standoff / 2) keep.add(id);
+        }
+        if (keep.size) seeker = { ...self, reachable: keep };
+      } else {
+        this._side = null;
+      }
+      const goal = pickReachable(seeker, world, (p) => -Math.hypot(p.x - aim.x, p.y - aim.y));
       if (goal == null) return null;
       return { locomotion: goto(goal), gaze: look({ x: target.x, y: target.bodyY }), face: express(face, 0.5) };
     },
@@ -482,6 +510,37 @@ export function sometimes(inner, p = 0.3, { window = 2 } = {}) {
         this._active = Math.random() < p;
       }
       return this._active && inner.update ? inner.update(world, self) : null;
+    },
+  };
+}
+
+// Higher-order: fuse several behaviors into ONE, so a single gate (a
+// sometimes(), a fatigue(), a custom condition) governs them as a unit and
+// their bids merge instead of competing in the arbiter. Each frame every inner
+// behavior is updated in order and the bids are shallow-merged, LATER WINS per
+// channel: group(trek, copy) walks like trek but wears copy's face wherever
+// copy has an opinion. Silence is preserved: if no inner bids, the group bids
+// null. The group's priority is the highest of its members (override with
+// opts.priority); its channels are the union. This replaces the hand-rolled
+// `{ ...a.update(), ...b.update() }` merge every composite otherwise reinvents.
+export function group(...args) {
+  const last = args[args.length - 1];
+  const opts = last && typeof last.update !== 'function' ? args.pop() : {};
+  const inner = args;
+  return {
+    id: `group(${inner.map((b) => b.id).join('+')})`,
+    priority: opts.priority != null ? opts.priority : Math.max(...inner.map((b) => b.priority)),
+    channels: [...new Set(inner.flatMap((b) => b.channels || []))],
+    init(byster) {
+      for (const b of inner) if (b.init) b.init(byster);
+    },
+    update(world, self) {
+      let bid = null;
+      for (const b of inner) {
+        const r = b.update ? b.update(world, self) : null;
+        if (r) bid = { ...(bid || {}), ...r };
+      }
+      return bid;
     },
   };
 }

@@ -7,7 +7,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   followCursor, avoidCursorGaze, mood, flourish, sleep, fatigue, sometimes, perch,
-  wander, watchCursor, watchNearest, approach, flee, caughtBy, reactTo, fleeCursor, liveliness, operateFixtures,
+  wander, watchCursor, watchNearest, approach, flee, caughtBy, reactTo, fleeCursor, liveliness, operateFixtures, group,
 } from './library.js';
 import { goto, stop } from './channels.js';
 import { Byster } from './byster.js';
@@ -357,6 +357,137 @@ describe('Byster.view(): the decentralized-sensing snapshot', () => {
     expect(v.caps).toBe(caps); // identity, so a fleer can reason with the pursuer real caps
     expect(v.tags).toBeInstanceOf(Set);
     expect(v.tags.size).toBe(0);
+  });
+
+  it('exposes the current face expression, tracking the mover live', () => {
+    const g = groundGraph();
+    const mover = new SurfaceMover(CHAR);
+    mover.spawn(g, 0, 120, LAUNCH_AGILE);
+    const b = new Byster('scout', mover, []);
+    expect(b.view().face).toBe('idle'); // spawn sets the resting face
+    mover.face.set('happy');
+    expect(b.view().face).toBe('happy');
+  });
+});
+
+describe('approach standoff: stand beside the target, never on it', () => {
+  // Sparse vertices: 180 | 300 (the target's own spot) | 420.
+  const points = { 1: { x: 300, y: 0 }, 2: { x: 420, y: 0 }, 3: { x: 180, y: 0 } };
+  const navWorld = (target) => ({
+    bysters: { nearestMatching: () => target },
+    nav: { vertexPoint: (id) => points[id] },
+  });
+  const model = { name: 'model', x: 300, bodyY: 0 };
+
+  it('vetoes the target personal-space vertex and berths a standoff away on its own side', () => {
+    const b = approach(() => true, { standoff: 110, notice: Infinity });
+    // follower far LEFT: aim is 300 - 110 = 190; the nearest vertex to that aim is
+    // the target's own (300), but it is inside the personal space, so the berth
+    // falls to 180 on the follower's side
+    const bid = b.update(navWorld(model), { x: 0, bodyY: 0, reachable: new Set([1, 2, 3]) });
+    expect(bid.locomotion).toEqual({ kind: 'goto', vertex: 3 });
+    expect(bid.gaze.point).toEqual({ x: 300, y: 0 }); // eyes on the real target, not the berth
+  });
+
+  it('the chosen side freezes once close, so the follower never cuts through its target', () => {
+    const b = approach(() => true, { standoff: 110, notice: Infinity });
+    b.update(navWorld(model), { x: 600, bodyY: 0, reachable: new Set([1, 2, 3]) }); // far right: side = +1
+    // now slightly LEFT of the target but within 2x standoff: the side must stay
+    // frozen at +1 (aim 410 -> vertex 420), not re-anchor to -1 (aim 190 -> 180)
+    const bid = b.update(navWorld(model), { x: 280, bodyY: 0, reachable: new Set([1, 2, 3]) });
+    expect(bid.locomotion).toEqual({ kind: 'goto', vertex: 2 });
+  });
+
+  it('losing the target resets the side; without standoff the target vertex is fair game', () => {
+    const b = approach(() => true, { standoff: 110, notice: Infinity });
+    b.update(navWorld(model), { x: 600, bodyY: 0, reachable: new Set([1, 2, 3]) });
+    expect(b.update(navWorld(null), { x: 600, bodyY: 0, reachable: new Set([1, 2, 3]) })).toBeNull();
+    expect(b._side).toBeNull(); // fresh episode, fresh side
+    const plain = approach(() => true, { notice: Infinity });
+    const bid = plain.update(navWorld(model), { x: 0, bodyY: 0, reachable: new Set([1, 2, 3]) });
+    expect(bid.locomotion).toEqual({ kind: 'goto', vertex: 1 }); // classic pile-on approach, unchanged
+  });
+
+  it('personal-space veto falls back to the full set rather than stranding the follower', () => {
+    const b = approach(() => true, { standoff: 110, notice: Infinity });
+    // the ONLY reachable vertex is the target's own: standing too close beats stranding
+    const bid = b.update(navWorld(model), { x: 0, bodyY: 0, reachable: new Set([1]) });
+    expect(bid.locomotion).toEqual({ kind: 'goto', vertex: 1 });
+  });
+
+  it('headless end to end: the follower settles beside a standing model, outside its personal space', () => {
+    const g = groundGraph();
+    const stage = new Stage(g);
+    const mModel = new SurfaceMover(CHAR); mModel.spawn(g, 0, 300, LAUNCH_AGILE); // x = 200
+    const mTail = new SurfaceMover(CHAR); mTail.spawn(g, 0, 700, LAUNCH_AGILE); // x = 600, right of the model
+    stage.add(new Byster('model', mModel, [])); // a statue: no behaviors, never moves
+    stage.add(new Byster('tail', mTail, [approach((v) => v.name === 'model', { notice: Infinity, standoff: 110 })]));
+    for (let i = 0; i < 900; i++) stage.step(1 / 60); // 15 sim-seconds
+    const dx = mTail.x - mModel.x;
+    expect(mTail.state).toBe('idle'); // settled, not orbiting
+    expect(dx).toBeGreaterThanOrEqual(55); // outside the personal space, on its own side
+    expect(dx).toBeLessThanOrEqual(160); // but genuinely beside, not stranded down the page
+  });
+});
+
+describe('group(): fuse behaviors into one bid, later wins per channel', () => {
+  const bidder = (id, priority, channels, bid) => ({ id, priority, channels, update: () => bid });
+
+  it('merges bids with later-wins overlap, unions channels, takes the top priority', () => {
+    const walkAndFrown = bidder('walk', 40, ['locomotion', 'face'], { locomotion: goto(7), face: { kind: 'express', name: 'frown' } });
+    const smile = bidder('smile', 20, ['face'], { face: { kind: 'express', name: 'smile' } });
+    const fused = group(walkAndFrown, smile);
+    expect(fused.priority).toBe(40);
+    expect(fused.channels.sort()).toEqual(['face', 'locomotion']);
+    const bid = fused.update({}, {});
+    expect(bid.locomotion).toEqual(goto(7)); // the earlier walker still steers
+    expect(bid.face.name).toBe('smile'); // the later face overrides the overlap
+  });
+
+  it('stays silent when every member is silent, and skips silent members in the merge', () => {
+    const mute = bidder('mute', 10, ['face'], null);
+    const talk = bidder('talk', 10, ['face'], { face: { kind: 'express', name: 'hey' } });
+    expect(group(mute, mute).update({}, {})).toBeNull();
+    expect(group(mute, talk).update({}, {}).face.name).toBe('hey');
+    expect(group(talk, mute).update({}, {}).face.name).toBe('hey'); // a silent later member does not erase the earlier bid
+  });
+
+  it('forwards init to every member and honors an explicit priority override', () => {
+    const seen = [];
+    const withInit = (id) => ({ id, priority: 10, channels: [], init: (by) => seen.push([id, by]), update: () => null });
+    const fused = group(withInit('a'), withInit('b'), { priority: 99 });
+    fused.init('the-byster');
+    expect(seen).toEqual([['a', 'the-byster'], ['b', 'the-byster']]);
+    expect(fused.priority).toBe(99);
+  });
+
+  it('a single gate governs the whole unit (sometimes wraps a group cleanly)', () => {
+    seedRandom(7);
+    const talk = bidder('talk', 10, ['face'], { face: { kind: 'express', name: 'hey' } });
+    const gated = sometimes(group(talk), 0, { window: 1 }); // p = 0: never active
+    expect(gated.update({ dt: 2 }, {})).toBeNull();
+  });
+});
+
+describe('face sensing: one byster reads another expression through world.bysters', () => {
+  it('a mimic behavior copies the model face it senses in the snapshot', () => {
+    const g = groundGraph();
+    const stage = new Stage(g);
+    const mModel = new SurfaceMover(CHAR); mModel.spawn(g, 0, 200, LAUNCH_AGILE);
+    const mTwin = new SurfaceMover(CHAR); mTwin.spawn(g, 0, 260, LAUNCH_AGILE);
+    // the model holds a face; the twin's only knowledge of it is the sensed view
+    stage.add(new Byster('model', mModel, [mood('happy')]));
+    const copycat = {
+      id: 'copycat', priority: 20, channels: ['face'],
+      update: (world) => {
+        const v = world.bysters.named('model');
+        return v && v.face !== 'off' ? { face: { kind: 'express', name: v.face } } : null;
+      },
+    };
+    stage.add(new Byster('twin', mTwin, [copycat]));
+    stage.step(1 / 60); // model expresses; snapshot views are pre-step, so the twin sees it next frame
+    stage.step(1 / 60);
+    expect(stage.named('twin').mover.face.expr).toBe('happy');
   });
 });
 

@@ -6,5 +6,6 @@
   "demo": "https://banjobyster.github.io/bysters/",
   "accent": "rgba(47, 66, 240, 0.9)",
   "tags": ["JavaScript", "PixiJS", "Procedural"],
+  "vibeCoded": true,
   "order": 35
 }

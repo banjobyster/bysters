@@ -60,7 +60,10 @@ into other faces with `data-walk="top bottom left right"` and a byster will scal
 walls and hang under the undersides. bysters compiles those rectangles into a surface
 graph with two movement primitives, a **walk** (along a surface or around a shared
 corner) and a single **ballistic arc** (every hop, drop and leap is the same jump
-under gravity). It re-plans the whole graph when the layout changes.
+under gravity). When the layout changes it recompiles the graph and the cast
+rides the change: a byster whose floor moved keeps its place on that floor, its
+mind and the fixture record intact. Rebuilds change the geometry, not the
+population, and a resize or observer tick that changed nothing is a no-op.
 
 ```html
 <div data-walk style="...">a floor</div>

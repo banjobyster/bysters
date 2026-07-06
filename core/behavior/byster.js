@@ -27,11 +27,13 @@ export class Byster {
   }
 
   // Read-only view other bysters sense. Includes caps so a fleer can reason about
-  // where a pursuer can and cannot follow (route-aware flight), and tags so a
-  // byster can react to another's broadcast state (e.g. ignore one that is caught).
+  // where a pursuer can and cannot follow (route-aware flight), tags so a byster
+  // can react to another's broadcast state (e.g. ignore one that is caught), and
+  // the current face expression so an expression is senseable like any other
+  // observable state (a mimic reads it here, not through a side channel).
   view() {
     const m = this.mover;
-    return { name: this.name, x: m.x, bodyY: m.bodyY, surface: m.surface, state: m.state, caps: m.caps, tags: this.tags };
+    return { name: this.name, x: m.x, bodyY: m.bodyY, surface: m.surface, state: m.state, caps: m.caps, tags: this.tags, face: m.face.expr };
   }
 
   // A commanded destination outranks behaviors until reached (see the `commanded`

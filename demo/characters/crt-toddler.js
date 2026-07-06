@@ -126,23 +126,34 @@ const FACES = {
     f.block(6, 8, 4, 2, 2);
     f.block(7, 9, 2, 1, 3);
   },
-  love(f) {
-    // The swoon: bobbing heart eyes and a little open smile, for when the
-    // cursor is close enough to sidle right up to. Drawn at the main level
-    // with one hot glint per heart, so a consumer accent palette (the demo
-    // swaps in a warm rose set while this face is up) reads as red hearts.
-    const b = Math.sin(f.t * 6) > 0 ? 1 : 0;
-    for (const c of [3, 10]) {
-      const r = 3 - b;
-      f.px(c, r, 2);
-      f.px(c + 2, r, 2);
-      f.block(c, r + 1, 3, 1, 2);
-      f.px(c + 1, r + 2, 2);
-      f.px(c, r + 1, 3);
+  vr(f) {
+    // Strapped into a headset: a solid visor band with straps at the temples,
+    // game light flickering inside, and a mouth reacting to the action.
+    f.block(1, 2, 14, 5, 1);
+    f.block(2, 3, 12, 3, 2);
+    f.px(0, 4, 1);
+    f.px(15, 4, 1);
+    const k = (f.t * 7) | 0;
+    f.px(3 + ((k * 5) % 9), 3 + (k % 3), 3);
+    f.px(12 - ((k * 3) % 9), 4, 3);
+    if (Math.sin(f.t * 2.6) > 0.4) {
+      f.block(6, 9, 4, 2, 2);
+      f.block(7, 9, 2, 1, 3);
+    } else {
+      f.block(6, 9, 3, 1, 2);
     }
-    f.px(5, 8, 2);
-    f.block(6, 9, 4, 1, 2);
-    f.px(10, 8, 2);
+  },
+  phone(f) {
+    // Nose in the phone: half lids, pupils pinned to the bottom of the eyes,
+    // a thumb-scroll flick every beat, a soft glow from below the chin.
+    const flick = ((f.t * 1.6) | 0) % 4 === 3 ? 1 : 0;
+    for (const c of [3, 10]) {
+      f.block(c, 3, 3, 3, 1);
+      f.px(c + 1 + flick, 5, 3);
+    }
+    f.px(5, 10, 1);
+    f.block(6, 11, 4, 1, 1);
+    f.px(10, 10, 1);
   },
   surprise(f) {
     // Caught off guard: huge whites with pinpoint pupils on the gaze, a
@@ -273,7 +284,7 @@ export const CRT_TODDLER = {
   face: {
     w: 16,
     h: 12,
-    animated: ['glitch', 'sync', 'dizzy', 'excited', 'angry', 'suspicious', 'love', 'puff'],
+    animated: ['glitch', 'sync', 'dizzy', 'excited', 'angry', 'suspicious', 'puff', 'vr', 'phone'],
     exprs: FACES,
   },
 

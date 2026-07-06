@@ -25,7 +25,7 @@ import './main.css';
 
 const {
   operateFixtures, followCursor, wander, watchCursor, watchNearest,
-  approach, flee, caughtBy, reactTo, perch, fatigue, avoidCursorGaze, fleeCursor, liveliness, mood, flourish,
+  approach, flee, caughtBy, reactTo, perch, fatigue, avoidCursorGaze, fleeCursor, liveliness, mood, flourish, sleep,
 } = behaviors;
 
 const SARGE_CAPS = { maxLaunch: 770, gravity: 2400 }; // heavier than the imp, lighter than nothing
@@ -43,23 +43,24 @@ const CAST = [
       // Fixing the beacon shows the sync scan bar: he is visibly loading, not
       // just smiling at his work.
       operateFixtures({ match: (fx) => fx.type === 'herodev' && fx.state === 'broken', drive: 'fixed', face: 'sync' }),
-      // Two follow zones make the pursuit legible on his face: a sprint with
-      // eager saucer eyes (fatigue-wrapped, so he winds himself and stops to
-      // puff), then a heart-eyed swoon over the last 90-150px of the approach.
-      // Inside 90px neither bids, so the tracking idle pupils take over and
-      // follow the cursor. Priorities are spaced around the arbiter's +6
-      // incumbent bump: the sprint (43) can reclaim the face from the swoon
-      // (36, 42 as incumbent), while the beacon work (50) can still interrupt
-      // the sprint (49 as incumbent).
-      fatigue(followCursor({ face: 'eager', near: 150, priority: 43 }), { runFor: 7, restFor: 2.2, face: 'puff', minPace: 0.55 }),
-      followCursor({ face: 'love', near: 60, priority: 36 }),
-      // No wander: it bids every frame and prefers LEAVING the current
-      // surface, so the instant the chase yielded near the cursor it dragged
-      // him away again and the recapture loop churned his face. His resting
-      // state is now standing and watching (the tracking idle pupils), with a
-      // purposeful stroll to a random spot every so often instead.
-      perch({ every: 16, dwell: 6, face: 'idle', priority: 35, pick: () => Math.random() }),
-      watchCursor(),
+      // He only engages a cursor that comes to HIM: the gaze notices at
+      // 420px, the sprint commits inside 300px (eager saucer eyes, winding
+      // himself down to a puff), and inside 90px neither bids, so he stands
+      // and watches with the tracking idle pupils. No wander: it bids every
+      // frame and prefers LEAVING the current surface, which dragged him away
+      // the instant the chase yielded and churned his face in the recapture
+      // loop; his resting state is standing.
+      whenCursor(fatigue(followCursor({ face: 'eager', near: 90, priority: 43 }), { runFor: 7, restFor: 2.2, face: 'puff', minPace: 0.55 }), (d) => d < 300),
+      whenCursor(watchCursor(), (d) => d < 420),
+      // Left alone (which is what a phone visitor mostly sees) he lives a
+      // little life of his own: VR sessions on the spot at 38 so a stroll
+      // cannot cut the game short, and strolls taken nose-down in his phone.
+      // Both need the cursor beyond 200px, so his attention is yours the
+      // moment you come close; the game holds against the 43 sprint only
+      // until you cross 200 (incumbent 38+6=44), which reads as engrossed,
+      // not oblivious. The beacon work (50) interrupts everything.
+      whenCursor(sleep({ awakeFor: 22, sleepFor: 8, face: 'vr', priority: 38 }), (d) => d > 200),
+      whenCursor(perch({ every: 14, dwell: 5, face: 'phone', priority: 35, pick: () => Math.random() }), (d) => d > 200),
       flourish(['excited', 'wink', 'suspicious', 'happy'], { every: 6, hold: 1.4 }),
       liveliness({ base: DERATE, vary: 0.16, every: 3 }), // easy, gentle strides
       mood('idle'),
@@ -130,20 +131,26 @@ const CAST = [
   },
 ];
 
-// Consumer-driven face accent: while Pip's swoon face is up, swap his green
-// phosphor for a warm rose set so the hearts read red, and restore the
-// character palette the moment the face changes. setFacePalette is the
-// renderer's public accent hook; the expression itself stays palette-agnostic.
-const LOVE_PIX = [0, 0x8f2436, 0xff6b74, 0xffdfe4];
-function accentLove(cast) {
-  for (const m of cast) {
-    if (m.name !== 'pip' || !m.renderer) continue;
-    const inLove = m.mover.face.expr === 'love';
-    if (inLove !== (m.renderer.pix === LOVE_PIX)) {
-      m.renderer.setFacePalette(inLove ? LOVE_PIX : null);
-      m.mover.face.dirty = true; // force the re-blit in the new palette
-    }
-  }
+// Consumer-side combinator, the same species as the library's own fatigue()
+// and sometimes(): gate any behavior on the cursor's distance to this byster.
+// Distance is Infinity when no cursor has ever been seen, so far-gates start
+// open and near-gates start closed. This is how Pip only engages a cursor
+// that comes to HIM and lives his own life otherwise; the library behaviors
+// themselves stay unconditional.
+function whenCursor(inner, test) {
+  return {
+    id: inner.id,
+    priority: inner.priority,
+    channels: inner.channels,
+    init(byster) {
+      if (inner.init) inner.init(byster);
+    },
+    update(world, self) {
+      const c = world.cursor;
+      const d = c ? Math.hypot(c.x - self.x, c.y - self.bodyY) : Infinity;
+      return test(d) ? inner.update(world, self) : null;
+    },
+  };
 }
 
 // Consumer-drawn interaction visual: a cable from a plugged byster to its
@@ -281,7 +288,6 @@ async function main() {
     ground: false, // tall multi-scene page: each scene brings its own floor
     shadow: false, // a ground shadow reads wrong on walls/undersides here; drop it
     onFrame: (f) => {
-      accentLove(f.cast);
       drawCables(f);
       if (debugOn) {
         drawDebug(f);

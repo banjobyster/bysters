@@ -109,7 +109,25 @@ export function nearestVertex(graph, x, y, surfaceId = null) {
 //   { type:'jump', from:{x,y,surface}, to:{x,y,surface}, launch:{vx,vy,t,g,speed} }
 // or null when unreachable. A nimble character reaches goals a heavy one cannot,
 // from the same graph, purely via which jump edges its caps allow.
-export function planRoute(graph, startId, goalId, caps) {
+//
+// opts.shapeCost: (edge, graph) => multiplier lets a caller reprice edges
+// without reimplementing the search (a whimsy markup, a tax on wall routes).
+// Shaping is INFLATION-ONLY: the multiplier is clamped to >= 1 (sub-1 and NaN
+// read as 1). Base edge costs are never below the straight-line distance, so
+// with inflation the euclidean heuristic stays admissible and the search still
+// returns an optimal route under the shaped metric. A discount could undercut
+// the heuristic and silently break optimality, which is why the seam refuses
+// it rather than documenting a footgun. Infinity is an outright ban: when it
+// severs the only route the plan honestly fails (returns null), so bias-style
+// shapers should stick to finite multipliers.
+export function planRoute(graph, startId, goalId, caps, opts = {}) {
+  const shape = typeof opts.shapeCost === 'function' ? opts.shapeCost : null;
+  const costOf = shape
+    ? (e) => {
+        const m = shape(e, graph);
+        return e.cost * (m >= 1 ? m : 1);
+      }
+    : (e) => e.cost;
   const byId = (id) => graph.vertices[id];
   const goal = byId(goalId);
   const h = (v) => dist(v.x, v.y, goal.x, goal.y);
@@ -129,7 +147,7 @@ export function planRoute(graph, startId, goalId, caps) {
     for (const e of graph.adj.get(cur.id) || []) {
       if (closed.has(e.to)) continue;
       if (!edgeAllowed(e, caps)) continue;
-      const ng = g.get(cur.id) + e.cost;
+      const ng = g.get(cur.id) + costOf(e);
       if (ng < (g.get(e.to) ?? Infinity)) {
         g.set(e.to, ng);
         cameFrom.set(e.to, { prev: cur.id, edge: e });

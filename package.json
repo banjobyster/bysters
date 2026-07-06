@@ -1,6 +1,6 @@
 {
   "name": "@banjobyster/bysters",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publishConfig": { "access": "public" },
   "description": "Bring a web page to life with bysters: small procedurally-animated creatures that treat the DOM as physical terrain, sense the cursor and each other, and operate stateful elements on the page.",
   "type": "module",

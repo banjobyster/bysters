@@ -67,13 +67,14 @@ const FACES = {
   // point away from the cursor, so they still never aim at the viewer. Used
   // for the curious flourish.
   peek(f) {
+    // 2x2 hot pupils: at her low alpha and soft palette, single pixels vanish.
     const gx = Math.round(f.gazeX);
-    const pr = Math.min(Math.max(5 + Math.round(f.gazeY * 0.8), 4), 6);
+    const pr = Math.min(Math.max(4 + Math.round(f.gazeY * 0.8), 4), 5);
     f.block(3, 4, 3, 3, 2);
-    f.px(Math.min(Math.max(4 + gx, 3), 5), pr, 3);
+    f.block(Math.min(Math.max(4 + gx, 3), 4), pr, 2, 2, 3);
     f.px(6, 5, 1);
     f.block(10, 4, 3, 3, 2);
-    f.px(Math.min(Math.max(11 + gx, 10), 12), pr, 3);
+    f.block(Math.min(Math.max(11 + gx, 10), 11), pr, 2, 2, 3);
     f.px(13, 5, 1);
     f.block(6, 9, 4, 1, 2);
   },
@@ -84,11 +85,12 @@ const FACES = {
   lookaway(f) {
     const band = f.h - 1 - (((f.t * 4) | 0) % f.h);
     f.block(0, band, f.w, 1, 2);
+    // 2x2 hot pupils filling the slit's height, pinned to the escape side.
     const g = Math.round(f.gazeX * 2);
     f.block(3, 5, 3, 2, 1);
-    f.px(Math.min(Math.max(4 + g, 3), 5), 5, 2);
+    f.block(Math.min(Math.max(4 + g, 3), 4), 5, 2, 2, 3);
     f.block(10, 5, 3, 2, 1);
-    f.px(Math.min(Math.max(11 + g, 10), 12), 5, 2);
+    f.block(Math.min(Math.max(11 + g, 10), 11), 5, 2, 2, 3);
   },
   // A beat off in its own world: a soft test-pattern sliver blooms and fades.
   dream(f) {

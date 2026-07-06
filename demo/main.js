@@ -120,7 +120,7 @@ const CAST = [
     spawnAt: '.card.c1',
     alpha: 0.55,
     behaviors: [
-      fleeCursor({ radius: 250, face: 'lookaway', speed: 1.7, alpha: 0.12 }), // reading a card? she bolts off it, FAST, turning glassy while startled
+      fleeCursor({ radius: 250, face: 'lookaway', speed: 1.7, alpha: 0.22 }), // reading a card? she bolts off it, FAST, turning glassy while startled (0.22 keeps her lookaway face readable mid-bolt)
       perch({ every: 6, dwell: 3, face: 'peek', priority: 60 }), // pause and take a card in
       avoidCursorGaze(),
       wander(),

@@ -25,7 +25,7 @@ import './main.css';
 
 const {
   operateFixtures, followCursor, wander, watchCursor, watchNearest,
-  approach, flee, caughtBy, reactTo, perch, fatigue, avoidCursorGaze, fleeCursor, liveliness, mood, flourish,
+  approach, flee, caughtBy, reactTo, perch, fatigue, avoidCursorGaze, fleeCursor, liveliness, mood, flourish, sleep,
 } = behaviors;
 
 const SARGE_CAPS = { maxLaunch: 770, gravity: 2400 }; // heavier than the imp, lighter than nothing
@@ -40,11 +40,22 @@ const CAST = [
     speedScale: DERATE,
     spawnAt: '#hero-floor',
     behaviors: [
-      operateFixtures({ match: (fx) => fx.type === 'herodev' && fx.state === 'broken', drive: 'fixed', face: 'happy' }),
-      followCursor({ face: 'happy' }),
+      // Fixing the beacon shows the sync scan bar: he is visibly loading, not
+      // just smiling at his work.
+      operateFixtures({ match: (fx) => fx.type === 'herodev' && fx.state === 'broken', drive: 'fixed', face: 'sync' }),
+      // Two follow zones make the pursuit legible on his face: a far sprint
+      // with eager saucer eyes (fatigue-wrapped, so he winds himself and stops
+      // to puff), then a close-in swoon with heart eyes. Inside 90px neither
+      // bids, so the tracking idle pupils take over and follow the cursor.
+      fatigue(followCursor({ face: 'eager', near: 200, priority: 41 }), { runFor: 7, restFor: 2.2, face: 'puff', minPace: 0.55 }),
+      followCursor({ face: 'love', near: 90 }),
+      // A toddler standstill (sleep re-skinned at just-above-wander priority):
+      // every few seconds he stops roaming and simply watches, which is where
+      // the idle face's tracking pupils get their showcase.
+      sleep({ awakeFor: 7, sleepFor: 3.5, face: 'idle', priority: 12 }),
       wander(),
       watchCursor(),
-      flourish(['happy', 'excited'], { every: 6 }),
+      flourish(['excited', 'wink', 'surprise', 'suspicious', 'dizzy', 'happy'], { every: 5 }),
       liveliness({ base: DERATE, vary: 0.16, every: 3 }), // easy, gentle strides
       mood('idle'),
     ],

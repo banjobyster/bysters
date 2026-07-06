@@ -118,6 +118,50 @@ const FACES = {
     f.block(3, 5, 3, 2, 1);
     f.block(10, 5, 3, 2, 1);
   },
+  eager(f) {
+    // The chase face: big saucer eyes with pupils locked on the gaze, an
+    // open delighted grin. Shown while sprinting after the cursor.
+    f.eye(2, 2, 4, 5, true);
+    f.eye(10, 2, 4, 5, true);
+    f.block(6, 8, 4, 2, 2);
+    f.block(7, 9, 2, 1, 3);
+  },
+  love(f) {
+    // The swoon: bobbing heart eyes and a little open smile, for when the
+    // cursor is close enough to sidle right up to.
+    const b = Math.sin(f.t * 6) > 0 ? 1 : 0;
+    for (const c of [3, 10]) {
+      const r = 3 - b;
+      f.px(c, r, 3);
+      f.px(c + 2, r, 3);
+      f.block(c, r + 1, 3, 1, 3);
+      f.px(c + 1, r + 2, 3);
+    }
+    f.px(5, 8, 2);
+    f.block(6, 9, 4, 1, 2);
+    f.px(10, 8, 2);
+  },
+  surprise(f) {
+    // Caught off guard: huge whites with pinpoint pupils on the gaze, a
+    // small o mouth.
+    const gx = Math.round(f.gazeX);
+    const gy = Math.round(f.gazeY * 0.8);
+    for (const c of [2, 10]) {
+      f.block(c, 2, 4, 4, 1);
+      f.px(Math.min(Math.max(c + 1 + gx, c), c + 3), Math.min(Math.max(3 + gy, 2), 5), 3);
+    }
+    f.block(7, 8, 2, 2, 2);
+  },
+  puff(f) {
+    // Winded after a chase: flat closed lids, a panting mouth, a sweat drop
+    // sliding down the bezel.
+    f.block(3, 4, 3, 1, 1);
+    f.block(10, 4, 3, 1, 1);
+    const pant = Math.sin(f.t * 3.2) > 0 ? 1 : 0;
+    f.block(6, 8, 4, 1 + pant, 1);
+    const drop = ((f.t * 5) | 0) % 4;
+    f.px(14, 1 + drop, 3);
+  },
   excited(f) {
     // Bouncing chevron eyes, an open grin, twinkling corner sparkles.
     const b = Math.sin(f.t * 10) > 0 ? 1 : 0;
@@ -226,7 +270,7 @@ export const CRT_TODDLER = {
   face: {
     w: 16,
     h: 12,
-    animated: ['glitch', 'sync', 'dizzy', 'excited', 'angry', 'suspicious'],
+    animated: ['glitch', 'sync', 'dizzy', 'excited', 'angry', 'suspicious', 'love', 'puff'],
     exprs: FACES,
   },
 

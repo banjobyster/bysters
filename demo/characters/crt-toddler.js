@@ -144,16 +144,17 @@ const FACES = {
     }
   },
   phone(f) {
-    // Nose in the phone: half lids, pupils pinned to the bottom of the eyes,
-    // a thumb-scroll flick every beat, a soft glow from below the chin.
-    const flick = ((f.t * 1.6) | 0) % 4 === 3 ? 1 : 0;
-    for (const c of [3, 10]) {
-      f.block(c, 3, 3, 3, 1);
-      f.px(c + 1 + flick, 5, 3);
-    }
-    f.px(5, 10, 1);
-    f.block(6, 11, 4, 1, 1);
-    f.px(10, 10, 1);
+    // Nose in the phone: a lit slab held up under his chin, half-lidded eyes
+    // converging down onto it, and content visibly scrolling on its screen.
+    f.block(3, 2, 3, 3, 1);
+    f.px(5, 4, 3); // left pupil: down and inward, onto the slab
+    f.block(10, 2, 3, 3, 1);
+    f.px(10, 4, 3); // right pupil: down and inward
+    f.block(6, 7, 4, 5, 2); // the slab
+    f.block(7, 8, 2, 3, 1); // its screen
+    const k = (f.t * 2.5) | 0;
+    f.px(7, 8 + (k % 3), 3); // scrolling content lines
+    f.px(8, 8 + ((k + 1) % 3), 2);
   },
   surprise(f) {
     // Caught off guard: huge whites with pinpoint pupils on the gaze, a

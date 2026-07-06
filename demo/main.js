@@ -59,8 +59,8 @@ const CAST = [
       // moment you come close; the game holds against the 43 sprint only
       // until you cross 200 (incumbent 38+6=44), which reads as engrossed,
       // not oblivious. The beacon work (50) interrupts everything.
-      whenCursor(sleep({ awakeFor: 22, sleepFor: 8, face: 'vr', priority: 38 }), (d) => d > 200),
-      whenCursor(perch({ every: 14, dwell: 5, face: 'phone', priority: 35, pick: () => Math.random() }), (d) => d > 200),
+      whenCursor(sleep({ awakeFor: 12, sleepFor: 8, face: 'vr', priority: 38 }), (d) => d > 200),
+      whenCursor(perch({ every: 7, dwell: 5, face: 'phone', priority: 35, pick: () => Math.random() }), (d) => d > 200),
       flourish(['excited', 'wink', 'suspicious', 'happy'], { every: 6, hold: 1.4 }),
       liveliness({ base: DERATE, vary: 0.16, every: 3 }), // easy, gentle strides
       mood('idle'),

@@ -43,19 +43,23 @@ const CAST = [
       // Fixing the beacon shows the sync scan bar: he is visibly loading, not
       // just smiling at his work.
       operateFixtures({ match: (fx) => fx.type === 'herodev' && fx.state === 'broken', drive: 'fixed', face: 'sync' }),
-      // Two follow zones make the pursuit legible on his face: a far sprint
-      // with eager saucer eyes (fatigue-wrapped, so he winds himself and stops
-      // to puff), then a close-in swoon with heart eyes. Inside 90px neither
-      // bids, so the tracking idle pupils take over and follow the cursor.
-      fatigue(followCursor({ face: 'eager', near: 200, priority: 41 }), { runFor: 7, restFor: 2.2, face: 'puff', minPace: 0.55 }),
-      followCursor({ face: 'love', near: 90 }),
+      // Two follow zones make the pursuit legible on his face: a sprint with
+      // eager saucer eyes (fatigue-wrapped, so he winds himself and stops to
+      // puff), then a heart-eyed swoon over the last 90-150px of the approach.
+      // Inside 90px neither bids, so the tracking idle pupils take over and
+      // follow the cursor. Priorities are spaced around the arbiter's +6
+      // incumbent bump: the sprint (43) can reclaim the face from the swoon
+      // (36, 42 as incumbent), while the beacon work (50) can still interrupt
+      // the sprint (49 as incumbent).
+      fatigue(followCursor({ face: 'eager', near: 150, priority: 43 }), { runFor: 7, restFor: 2.2, face: 'puff', minPace: 0.55 }),
+      followCursor({ face: 'love', near: 90, priority: 36 }),
       // A toddler standstill (sleep re-skinned at just-above-wander priority):
       // every few seconds he stops roaming and simply watches, which is where
       // the idle face's tracking pupils get their showcase.
       sleep({ awakeFor: 7, sleepFor: 3.5, face: 'idle', priority: 12 }),
       wander(),
       watchCursor(),
-      flourish(['excited', 'wink', 'surprise', 'suspicious', 'dizzy', 'happy'], { every: 5 }),
+      flourish(['excited', 'wink', 'surprise', 'suspicious', 'dizzy', 'happy'], { every: 4.5, hold: 1.4 }),
       liveliness({ base: DERATE, vary: 0.16, every: 3 }), // easy, gentle strides
       mood('idle'),
     ],

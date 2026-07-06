@@ -13,7 +13,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="bysters — tiny creatures that live on your web page" />
     <meta name="twitter:description" content="Open-source creatures that make any web page feel alive. One import, zero config." />
-    <script type="module" crossorigin src="./assets/index-Bc4s37IG.js"></script>
+    <script type="module" crossorigin src="./assets/index-gL6nmYGk.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-ByL6gcSs.css">
   </head>
   <body>
@@ -40,12 +40,13 @@
           <p class="sr">bysters is an open-source JavaScript library that brings any web page to life with small procedural bots that walk your layout, notice the cursor, and break and fix things.</p>
         </div>
 
-        <!-- terrain (the little world). The beacon starts ON; click it to switch
-             it off and the bot notices and runs over to bring it back. -->
+        <!-- terrain (the little world). The beacon starts BROKEN so the landing
+             moment IS the story: Pip is already marching over to fix it while
+             the page settles. Click it any time to switch it off again. -->
         <div class="floor" data-walk id="hero-floor" style="left:8%; width:84%; bottom:120px; height:14px"></div>
-        <p class="fx-prompt" id="hero-prompt" style="left:calc(50% + 90px); bottom:190px">click to switch off</p>
+        <p class="fx-prompt" id="hero-prompt" style="left:calc(50% + 90px); bottom:190px">watch it come back</p>
         <div class="fx fx-beacon" data-fixture="herodev" data-fixture-id="hero-dev" id="hero-dev"
-             data-states="fixed broken" data-state="fixed" data-transitions="fixed>broken broken>fixed"
+             data-states="fixed broken" data-state="broken" data-transitions="fixed>broken broken>fixed"
              style="left:calc(50% + 70px); bottom:134px" role="button" tabindex="0" aria-label="beacon device: click to toggle">
           <span class="post"></span><span class="lamp"></span><span class="ring r1"></span><span class="ring r2"></span>
         </div>
@@ -153,6 +154,6 @@
         <span class="meta">MIT licensed &nbsp;·&nbsp; creativity by banjobyster</span>
       </div>
     </footer>
-
+
   </body>
 </html>
